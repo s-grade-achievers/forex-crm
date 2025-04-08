@@ -14,3 +14,12 @@ Each branch should contain a Dockerfile and a folder named with your microservic
     3. secure transactions
 - ## loyalty program
 - ## offers
+
+
+# Tech stack
+
+### Languages 
+- loyalty program, offers - python
+- forex - js
+### DB
+- forex admin - ms sql
