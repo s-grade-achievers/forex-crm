@@ -13,12 +13,12 @@ GO
 
 CREATE TABLE exchangeablePairs (
     id INT PRIMARY KEY,
-    fromCurrency NVARCHAR(3) NOT NULL,
-    toCurrency NVARCHAR(3) NOT NULL,
+    fromCurrency INT NOT NULL,
+    toCurrency INT NOT NULL,
     exchangeRate DECIMAL(18, 6) NOT NULL,
     lastUpdated DATETIME NOT NULL,
-    foreign KEY (fromCurrency) REFERENCES forexReserves(currency),
-    foreign KEY (toCurrency) REFERENCES forexReserves(currency)
+    foreign KEY (fromCurrency) REFERENCES forexReserves(id),
+    foreign KEY (toCurrency) REFERENCES forexReserves(id)
 )
 
 CREATE TABLE transactionLedger (
