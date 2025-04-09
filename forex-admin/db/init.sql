@@ -1,0 +1,11 @@
+CREATE DATABASE TestDB;
+GO
+
+USE TestDB;
+GO
+
+CREATE TABLE Users (
+    ID INT PRIMARY KEY,
+    Name NVARCHAR(100)
+);
+GO
