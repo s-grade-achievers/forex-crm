@@ -2,10 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const mssql = require("mssql");
 const dotenv = require("dotenv");
+const fs = require("fs");
 
 dotenv.config();
 
 const { DB_HOST, DB_USER, DB_PASS, DB_NAME } = process.env;
+const apiKey = fs.readFileSync("/app/src/secret.txt", "utf8").trim();
 
 const app = express();
 const port = 3000;
@@ -45,25 +47,71 @@ async function connectWithRetry(retries = 10, delay = 3000) {
 connectWithRetry()
 	.then((pool) => {
 		app.listen(port, () => {
-			console.log(`🚀 Server running on port ${port}`);
+			console.log(`Server running on port ${port}`);
 		});
 
 		app.locals.db = pool;
 	})
 	.catch((err) => {
-		console.error(
-			"🔥 Could not start server due to DB issues:",
-			err.message
-		);
+		console.error("Could not start server due to DB issues:", err.message);
 		process.exit(1);
 	});
 
-app.get("/example", (req, res) => {
-	const db = req.app.locals.db; 
-	db.query("SELECT * FROM forexReserves", (err, result) => {
-		if (err) {
-			return res.status(500).send("Database error");
+app.get("/api/fetchPairs", (req, res) => {
+	const db = req.app.locals.db;
+	db.query(
+		`SELECT 
+            f.currency AS fromCurrency, 
+            f1.currency AS toCurrency 
+        FROM 
+            forexReserves AS f 
+        JOIN 
+            exchangeablePairs AS e 
+        ON 
+            f.id = e.fromCurrency 
+        JOIN 
+            forexReserves AS f1 
+        ON 
+            f1.id = e.toCurrency`,
+		(err, result) => {
+			if (err) {
+				console.error("Error fetching pairs:", err);
+				return res.status(500).json({ error: "Internal server error" });
+			}
+			if (result.recordset.length === 0) {
+				return res.status(404).json({ message: "No pairs found" });
+			}
+			res.json(result.recordsets[0]);
 		}
-		res.json(result);
-	});
+	);
+});
+
+app.get("/api/fetchExchangeRate/:toCurrency/:fromCurrency", (req, res) => {
+	const { toCurrency, fromCurrency } = req.params;
+	const endpoint = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/${fromCurrency}`;
+
+	fetch(endpoint)
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error("Network response was not ok");
+			}
+			return response.json();
+		})
+		.then((data) => {
+			if (!data.conversion_rates[toCurrency]) {
+				return res.status(404).json({
+					error: `Exchange rate for ${toCurrency} not found`,
+				});
+			}
+
+			res.status(200).json({
+				toCurrency: toCurrency,
+				fromCurrency: fromCurrency,
+				rate: data.conversion_rates[toCurrency],
+			});
+		})
+		.catch((error) => {
+			console.error("Error fetching exchange rate:", error);
+			res.status(500).json({ error: "Internal server error" });
+		});
 });
