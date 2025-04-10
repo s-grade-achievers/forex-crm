@@ -18,17 +18,18 @@ services:
 
     forex-admin:
         build: .
-        container_name: my_app
+        container_name: admin
         environment:
             DB_HOST: ${DB_HOST}
             DB_USER: ${DB_USER}
             DB_PASS: ${DB_PASS}
+            DB_NAME: ${DB_NAME}
         depends_on:
             - mssql
         networks:
             - backend
         volumes:
-            - ./src:/src
+            - ./src:/app/src
 
 volumes:
     sql_data:
