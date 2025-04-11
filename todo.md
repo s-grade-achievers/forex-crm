@@ -2,4 +2,5 @@
 - forex admin page
 - tls/ssl
 - profit making mechanism
-- 
+- dispatch forex
+- purchase external
