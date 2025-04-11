@@ -1,0 +1,5 @@
+- periodically update exchange rates
+- forex admin page
+- tls/ssl
+- profit making mechanism
+- 

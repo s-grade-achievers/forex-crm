@@ -86,32 +86,56 @@ app.get("/api/fetchPairs", (req, res) => {
 	);
 });
 
-app.get("/api/fetchExchangeRate/:toCurrency/:fromCurrency", (req, res) => {
-	const { toCurrency, fromCurrency } = req.params;
-	const endpoint = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/${fromCurrency}`;
+app.get("/api/fetchExchangeRate/", async (req, res) => {
+	const endpoint = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/`;
+	const db = req.app.locals.db;
 
-	fetch(endpoint)
-		.then((response) => {
-			if (!response.ok) {
-				throw new Error("Network response was not ok");
-			}
-			return response.json();
-		})
-		.then((data) => {
-			if (!data.conversion_rates[toCurrency]) {
-				return res.status(404).json({
-					error: `Exchange rate for ${toCurrency} not found`,
+	try {
+		const result = await db.query("SELECT id, currency FROM forexReserves");
+		const currencies = result.recordset.map((row) => row.currency);
+		const exchangeRates = {};
+		await Promise.all(
+			currencies.map(async (baseCurrency) => {
+				const response = await fetch(endpoint + baseCurrency);
+				if (!response.ok) {
+					throw new Error(
+						`Failed to fetch rates for ${baseCurrency}`
+					);
+				}
+				const data = await response.json();
+				console.log(1);
+				exchangeRates[baseCurrency] = {};
+				currencies.forEach((targetCurrency) => {
+					if (baseCurrency !== targetCurrency) {
+						exchangeRates[baseCurrency][targetCurrency] =
+							data.conversion_rates[targetCurrency];
+					}
 				});
-			}
+			})
+		);
 
-			res.status(200).json({
-				toCurrency: toCurrency,
-				fromCurrency: fromCurrency,
-				rate: data.conversion_rates[toCurrency],
-			});
-		})
-		.catch((error) => {
-			console.error("Error fetching exchange rate:", error);
-			res.status(500).json({ error: "Internal server error" });
-		});
+		res.json(exchangeRates);
+	} catch (error) {
+		console.error("Error fetching exchange rates:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
 });
+
+app.get("/api/fetchCurrencyMappings", async (req, res) => {
+	const db = req.app.locals.db;
+	try {
+		const result = await db.query("SELECT id, currency FROM forexReserves");
+		const mappings = result.recordset.map((row) => ({
+			id: row.id,
+			currency: row.currency,
+		}));
+		if (mappings.length === 0) {
+			return res.status(404).json({ message: "No mappings found" });
+		}
+		res.json(mappings);
+	} catch (error) {
+		console.error("Error fetching currency mappings:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+});
+
