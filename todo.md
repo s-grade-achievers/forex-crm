@@ -1,6 +1,7 @@
-- periodically update exchange rates
+- ~~periodically update exchange rates~~
 - forex admin page
-- tls/ssl
+- ~~tls/ssl~~
 - profit making mechanism
 - dispatch forex
+- exchange forex
 - purchase external
