@@ -4,7 +4,8 @@ const mssql = require("mssql");
 const dotenv = require("dotenv");
 const fs = require("fs");
 const https = require("https");
-const { exchangeRatesHelper } = require("./helper");
+const path = require("path");
+const { exchangeRatesHelper, verifyToken, generateToken } = require("./helper");
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ const port = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname)));
 
 const config = {
 	user: DB_USER,
@@ -64,12 +66,19 @@ connectWithRetry()
 		process.exit(1);
 	});
 
+app.get("/", (req, res) => {
+	res.sendFile(__dirname + "/index.html");
+});
+
 app.get("/api/fetchPairs", (req, res) => {
 	const db = req.app.locals.db;
 	db.query(
 		`SELECT 
-            f.currency AS fromCurrency, 
-            f1.currency AS toCurrency 
+            f.currency AS fromCurrency,
+			f.id AS fromCurrencyId,
+            f1.currency AS toCurrency,
+			f1.id AS toCurrencyId,
+			e.exchangeRate
         FROM 
             forexReserves AS f 
         JOIN 
@@ -115,16 +124,21 @@ app.put("/api/updateExchangeRate", async (req, res) => {
 		pairs.recordset.forEach(async (pair) => {
 			const fromCurrency = pair.fromCurrency;
 			const toCurrency = pair.toCurrency;
+			if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
+				console.error(
+					`Exchange rate not found for ${fromCurrency} to ${toCurrency}`
+				);
+				return;
+			}
 			const rate = exchangeRates[fromCurrency][toCurrency];
-			await db.query(
-				`UPDATE exchangeablePairs 
-					SET exchangeRate = ${rate} 
-					WHERE fromCurrency = ${fromCurrency} 
-					AND toCurrency = ${toCurrency}`
-			);
-			console.log(
-				`Updated exchange rate from ${fromCurrency} to ${toCurrency}: ${rate}`
-			);
+			await db
+				.request()
+				.input("fromCurrency", mssql.Int, fromCurrency)
+				.input("toCurrency", mssql.Int, toCurrency)
+				.input("rate", mssql.Decimal(18, 6), rate)
+				.query(
+					"UPDATE exchangeablePairs SET exchangeRate = @rate WHERE fromCurrency = @fromCurrency AND toCurrency = @toCurrency"
+				);
 		});
 		res.json({ message: "Exchange rates updated successfully" });
 	} catch (error) {
@@ -133,4 +147,77 @@ app.put("/api/updateExchangeRate", async (req, res) => {
 	}
 });
 
+app.post("/api/buyCurrency", async (req, res) => {
+	const db = req.app.locals.db;
+	const token = req.headers["authorization"]?.split(" ")[1];
 
+	if (!token) {
+		return res.status(401).json({ message: "Unauthorized" });
+	}
+
+	try {
+		const { userId, fromCurrency, toCurrency, reqAmount } =
+			await verifyToken(token);
+
+		if (
+			!userId ||
+			!fromCurrency ||
+			!toCurrency ||
+			!reqAmount
+		) {
+			return res.status(402).json({ message: "Invalid token" });
+		}
+
+		const exchangeablePairResult = await db
+			.request()
+			.input("fromCurrency", mssql.Int, fromCurrency)
+			.input("toCurrency", mssql.Int, toCurrency)
+			.query(
+				"SELECT * FROM exchangeablePairs WHERE fromCurrency = @fromCurrency AND toCurrency = @toCurrency"
+			);
+		
+		if (exchangeablePairResult.recordset.length === 0) {
+			return res.status(404).json({ message: "Invalid currency pair" });
+		}
+		const exchangeablePair = exchangeablePairResult.recordset[0];
+
+		await db
+			.request()
+			.input("userId", mssql.Int, userId)
+			.input("exchangePair", mssql.Int, exchangeablePair.id)
+			.input("amount", mssql.Decimal(18, 2), reqAmount)
+			.input("exchangeRate", mssql.Decimal(18, 2), exchangeablePair.exchangeRate)
+			.query(
+				"INSERT INTO transactionLedger (userId, exchangePair, amount, exchangeRate) VALUES (@userId, @exchangePair, @amount, @exchangeRate)"
+			);
+		const fromCurrencyId = exchangeablePair.fromCurrency;
+		const toCurrencyId = exchangeablePair.toCurrency;
+		const paidAmount = reqAmount * exchangeablePair.exchangeRate;
+
+		await db
+			.request()
+			.input("paidAmount", mssql.Decimal(18, 2), paidAmount)
+			.input("fromCurrency", mssql.Int, fromCurrencyId)
+			.query(
+				"UPDATE forexReserves SET amount = amount - @paidAmount WHERE id = @fromCurrency"
+			);
+
+		await db
+			.request()
+			.input("reqAmount", mssql.Decimal(18, 2), reqAmount)
+			.input("toCurrency", mssql.Int, toCurrencyId)
+			.query(
+				"UPDATE forexReserves SET amount = amount + @reqAmount WHERE id = @toCurrency"
+			);
+
+		const newToken = await generateToken(userId, fromCurrency, reqAmount);
+
+		res.json({
+			message: "Transaction successful",
+			token: newToken,
+		});
+	} catch (error) {
+		console.error("Error processing transaction:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+});

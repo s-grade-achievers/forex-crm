@@ -20,19 +20,19 @@ CREATE TABLE exchangeablePairs (
     CONSTRAINT uniquePair UNIQUE (fromCurrency, toCurrency),
     foreign KEY (fromCurrency) REFERENCES forexReserves(id),
     foreign KEY (toCurrency) REFERENCES forexReserves(id)
-)
+);
+GO
 
 CREATE TABLE transactionLedger (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY IDENTITY(1,1),
     userId INT NOT NULL,
-    transactionDate DATETIME NOT NULL,
+    transactionDate DATETIME NOT NULL DEFAULT GETDATE(),
     exchangePair INT NOT NULL,
     amount DECIMAL(18, 2) NOT NULL,
     exchangeRate DECIMAL(18, 6) NOT NULL,
     FOREIGN KEY (exchangePair) REFERENCES exchangeablePairs(id),
 );
 GO
-
 
 INSERT INTO forexReserves (id, currency, amount) VALUES
 (1, 'USD', 1000000000.00),
