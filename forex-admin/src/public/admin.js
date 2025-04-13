@@ -7,7 +7,8 @@ document
 			"Transaction ID",
 			"User ID",
 			"Date",
-			"Exchange Pair",
+			"From",
+            "To",
 			"Amount",
 			"Exchange Rate",
 		]);
