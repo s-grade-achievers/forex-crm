@@ -1,3 +1,5 @@
+openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365
+
 curl -X GET --cacert server.cert https://localhost:3000/api/fetchPairs
 
 curl -X PUT --cacert server.cert https://localhost:3000/api/updateExchangeRate

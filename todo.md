@@ -1,7 +1,7 @@
 - ~~periodically update exchange rates~~
-- forex admin page
+- ~~forex admin page~~
 - ~~tls/ssl~~
-- profit making mechanism
+- ~~profit making mechanism~~
 - ~~dispatch forex~~
-- exchange forex
+- ~~exchange forex~~
 - purchase external

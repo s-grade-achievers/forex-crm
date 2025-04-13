@@ -18,10 +18,10 @@ const sslOptions = {
 
 const app = express();
 const port = 3000;
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
 const config = {
 	user: DB_USER,
@@ -65,10 +65,6 @@ connectWithRetry()
 		console.error("Could not start server due to DB issues:", err.message);
 		process.exit(1);
 	});
-
-app.get("/", (req, res) => {
-	res.sendFile(__dirname + "/index.html");
-});
 
 app.get("/api/fetchPairs", (req, res) => {
 	const db = req.app.locals.db;
@@ -159,12 +155,7 @@ app.post("/api/buyCurrency", async (req, res) => {
 		const { userId, fromCurrency, toCurrency, reqAmount } =
 			await verifyToken(token);
 
-		if (
-			!userId ||
-			!fromCurrency ||
-			!toCurrency ||
-			!reqAmount
-		) {
+		if (!userId || !fromCurrency || !toCurrency || !reqAmount) {
 			return res.status(402).json({ message: "Invalid token" });
 		}
 
@@ -175,7 +166,7 @@ app.post("/api/buyCurrency", async (req, res) => {
 			.query(
 				"SELECT * FROM exchangeablePairs WHERE fromCurrency = @fromCurrency AND toCurrency = @toCurrency"
 			);
-		
+
 		if (exchangeablePairResult.recordset.length === 0) {
 			return res.status(404).json({ message: "Invalid currency pair" });
 		}
@@ -186,7 +177,11 @@ app.post("/api/buyCurrency", async (req, res) => {
 			.input("userId", mssql.Int, userId)
 			.input("exchangePair", mssql.Int, exchangeablePair.id)
 			.input("amount", mssql.Decimal(18, 2), reqAmount)
-			.input("exchangeRate", mssql.Decimal(18, 2), exchangeablePair.exchangeRate)
+			.input(
+				"exchangeRate",
+				mssql.Decimal(18, 2),
+				exchangeablePair.exchangeRate
+			)
 			.query(
 				"INSERT INTO transactionLedger (userId, exchangePair, amount, exchangeRate) VALUES (@userId, @exchangePair, @amount, @exchangeRate)"
 			);
@@ -218,6 +213,67 @@ app.post("/api/buyCurrency", async (req, res) => {
 		});
 	} catch (error) {
 		console.error("Error processing transaction:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+});
+
+app.get("/adminLogin", async (req, res) => {
+	res.sendFile(path.join(__dirname, "public", "adminLogin.html"));
+});
+
+app.get("/admin", async (req, res) => {
+	res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+
+app.get("/api/transactionHistory", async (req, res) => {
+	const db = req.app.locals.db;
+
+	try {
+		const transactionHistoryResult = await db.request().query(
+			`SELECT 
+					t.id AS transactionId,
+					t.userId,
+					t.transactionDate,
+					f.currency AS fromCurrency,
+					f1.currency AS toCurrency,
+					t.amount,
+					t.exchangeRate
+				FROM 
+					transactionLedger AS t 
+				JOIN 
+					exchangeablePairs AS e ON t.exchangePair = e.id
+				JOIN 
+					forexReserves AS f ON e.fromCurrency = f.id
+				JOIN 
+					forexReserves AS f1 ON e.toCurrency = f1.id`
+		);
+
+		if (transactionHistoryResult.recordset.length === 0) {
+			return res.status(404).json({ message: "No transactions found" });
+		}
+
+		res.json(transactionHistoryResult.recordsets[0]);
+	} catch (error) {
+		console.error("Error fetching transaction history:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+});
+
+app.get("/api/currentReserves", async (req, res) => {
+	const db = req.app.locals.db;
+
+	try {
+		const currentReservesResult = await db
+			.request()
+			.query("SELECT currency, amount FROM forexReserves");
+
+		if (currentReservesResult.recordset.length === 0) {
+			return res.status(404).json({ message: "No reserves found" });
+		}
+
+		res.json(currentReservesResult.recordsets[0]);
+	} catch (error) {
+		console.error("Error fetching current reserves:", error);
 		res.status(500).json({ error: "Internal server error" });
 	}
 });
