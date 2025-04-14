@@ -4,4 +4,4 @@
 - ~~profit making mechanism~~
 - ~~dispatch forex~~
 - ~~exchange forex~~
-- purchase external
+- ~~purchase external~~
