@@ -152,10 +152,11 @@ app.post("/api/buyCurrency", async (req, res) => {
 	}
 
 	try {
-		const { userId, fromCurrency, toCurrency, reqAmount } =
+		const { userId, fromCurrency, toCurrency, amount } =
 			await verifyToken(token);
 
-		if (!userId || !fromCurrency || !toCurrency || !reqAmount) {
+		if (userId === undefined || !fromCurrency || !toCurrency || !amount) {
+			console.log("Invalid token payload");
 			return res.status(402).json({ message: "Invalid token" });
 		}
 
@@ -176,7 +177,7 @@ app.post("/api/buyCurrency", async (req, res) => {
 			.request()
 			.input("userId", mssql.Int, userId)
 			.input("exchangePair", mssql.Int, exchangeablePair.id)
-			.input("amount", mssql.Decimal(18, 2), reqAmount)
+			.input("amount", mssql.Decimal(18, 2), amount)
 			.input(
 				"exchangeRate",
 				mssql.Decimal(18, 2),
@@ -187,7 +188,7 @@ app.post("/api/buyCurrency", async (req, res) => {
 			);
 		const fromCurrencyId = exchangeablePair.fromCurrency;
 		const toCurrencyId = exchangeablePair.toCurrency;
-		const paidAmount = reqAmount * exchangeablePair.exchangeRate;
+		const paidAmount = amount * exchangeablePair.exchangeRate;
 
 		await db
 			.request()
@@ -199,17 +200,16 @@ app.post("/api/buyCurrency", async (req, res) => {
 
 		await db
 			.request()
-			.input("reqAmount", mssql.Decimal(18, 2), reqAmount)
+			.input("amount", mssql.Decimal(18, 2), amount)
 			.input("toCurrency", mssql.Int, toCurrencyId)
 			.query(
-				"UPDATE forexReserves SET amount = amount + @reqAmount WHERE id = @toCurrency"
+				"UPDATE forexReserves SET amount = amount + @amount WHERE id = @toCurrency"
 			);
 
-		const newToken = await generateToken(userId, fromCurrency, reqAmount);
-
-		res.json({
+		const newToken = await generateToken(userId, fromCurrency, amount);
+		res.status(200).json({
 			message: "Transaction successful",
-			token: newToken,
+			newToken: newToken,
 		});
 	} catch (error) {
 		console.error("Error processing transaction:", error);
@@ -274,6 +274,31 @@ app.get("/api/currentReserves", async (req, res) => {
 		res.json(currentReservesResult.recordsets[0]);
 	} catch (error) {
 		console.error("Error fetching current reserves:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+});
+
+app.get("/adminBuy", async (req, res) => {
+	res.sendFile(path.join(__dirname, "public", "adminBuy.html"));
+});
+
+app.post("/api/generateToken", async (req, res) => {
+	const { userId, fromCurrencyId, toCurrencyId, amount } = req.body;
+	if (userId !== 0 || !fromCurrencyId || !toCurrencyId || !amount) {
+		console.log("here");
+		return res.status(400).json({ message: "Missing required fields" });
+	}
+
+	try {
+		const token = await generateToken(
+			userId,
+			fromCurrencyId,
+			toCurrencyId,
+			amount
+		);
+		res.status(200).json({ token });
+	} catch (error) {
+		console.error("Error generating token:", error);
 		res.status(500).json({ error: "Internal server error" });
 	}
 });

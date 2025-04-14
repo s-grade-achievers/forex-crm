@@ -44,12 +44,22 @@ async function verifyToken(token) {
 	}
 }
 
-async function generateToken(userId, currency, amount) {
-	const payload = {
-		userId: userId,
-		currency: currency,
-		amount: amount,
-	};
+async function generateToken(userId, fromCurrency = null, toCurrency, amount) {
+	let payload;
+	if (!fromCurrency) {
+		payload = {
+			userId: userId,
+			currency: fromCurrency,
+			amount: amount,
+		};
+	} else {
+		payload = {
+			userId: userId,
+			fromCurrency: fromCurrency,
+			toCurrency: toCurrency,
+			amount: amount,
+		};
+	}
 	const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 	return token;
 }

@@ -76,5 +76,13 @@ INSERT INTO exchangeablePairs (id, fromCurrency, toCurrency, exchangeRate) VALUE
 (27, 1, 9, 83.250000),  -- USD/INR
 (28, 2, 9, 89.500000),  -- EUR/INR
 (29, 3, 9, 105.300000), -- GBP/INR
-(30, 5, 9, 92.600000);  -- CHF/INR
+(30, 5, 9, 92.600000),  -- CHF/INR
+(31, 9, 1, 0.012000),   -- INR/USD
+(32, 9, 2, 0.011200),   -- INR/EUR
+(33, 9, 3, 0.009500),   -- INR/GBP
+(34, 9, 4, 1.200000),   -- INR/JPY
+(35, 9, 5, 0.010800),   -- INR/CHF
+(36, 9, 6, 0.016000),   -- INR/CAD
+(37, 9, 7, 0.018000),   -- INR/AUD
+(38, 9, 8, 0.020000);   -- INR/NZD
 GO

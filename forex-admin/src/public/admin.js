@@ -8,7 +8,7 @@ document
 			"User ID",
 			"Date",
 			"From",
-            "To",
+			"To",
 			"Amount",
 			"Exchange Rate",
 		]);
@@ -18,6 +18,17 @@ document.getElementById("viewReserves").addEventListener("click", async () => {
 	const response = await fetch("/api/currentReserves");
 	const data = await response.json();
 	populateTable(data, ["Currency", "Amount"]);
+	let buyMoreButton = document.getElementById("buyMore");
+	if (!buyMoreButton) {
+		buyMoreButton = document.createElement("button");
+		buyMoreButton.id = "buyMore";
+		buyMoreButton.textContent = "Buy More";
+		buyMoreButton.addEventListener("click", () => {
+			window.location.href = "/adminBuy";
+		});
+
+		document.body.appendChild(buyMoreButton);
+	}
 });
 
 function populateTable(data, headers) {
