@@ -8,7 +8,7 @@ const generateToken = () => {
 		userId: 123,
 		fromCurrency: 1,
         toCurrency: 2,
-		reqAmount: 1000,
+		amount: 1000,
 	};
 	const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 	return token;

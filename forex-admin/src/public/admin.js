@@ -12,22 +12,47 @@ document
 			"Amount",
 			"Exchange Rate",
 		]);
+
+		const buyMoreContainer = document.getElementById("buyMoreContainer");
+		if (buyMoreContainer) {
+			buyMoreContainer.remove();
+		}
 	});
 
 document.getElementById("viewReserves").addEventListener("click", async () => {
 	const response = await fetch("/api/currentReserves");
 	const data = await response.json();
 	populateTable(data, ["Currency", "Amount"]);
-	let buyMoreButton = document.getElementById("buyMore");
-	if (!buyMoreButton) {
-		buyMoreButton = document.createElement("button");
+
+	let buyMoreContainer = document.getElementById("buyMoreContainer");
+	if (!buyMoreContainer) {
+		buyMoreContainer = document.createElement("div");
+		buyMoreContainer.id = "buyMoreContainer";
+		buyMoreContainer.style.marginTop = "20px";
+		buyMoreContainer.style.textAlign = "center";
+
+		const buyMoreButton = document.createElement("button");
 		buyMoreButton.id = "buyMore";
 		buyMoreButton.textContent = "Buy More";
+		buyMoreButton.style.backgroundColor = "#007bff";
+		buyMoreButton.style.color = "#fff";
+		buyMoreButton.style.border = "none";
+		buyMoreButton.style.padding = "10px 20px";
+		buyMoreButton.style.borderRadius = "5px";
+		buyMoreButton.style.cursor = "pointer";
+
 		buyMoreButton.addEventListener("click", () => {
 			window.location.href = "/adminBuy";
 		});
 
-		document.body.appendChild(buyMoreButton);
+		buyMoreContainer.appendChild(buyMoreButton);
+
+		const tableContainer = document.querySelector("table")?.parentElement;
+		if (tableContainer) {
+			tableContainer.appendChild(buyMoreContainer);
+		} else {
+			document.body.appendChild(buyMoreContainer); // fallback
+		}
 	}
 });
 

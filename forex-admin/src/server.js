@@ -155,7 +155,7 @@ app.post("/api/buyCurrency", async (req, res) => {
 		const { userId, fromCurrency, toCurrency, amount } =
 			await verifyToken(token);
 
-		if (userId === undefined || !fromCurrency || !toCurrency || !amount) {
+		if (!fromCurrency || !toCurrency || !amount) {
 			console.log("Invalid token payload");
 			return res.status(402).json({ message: "Invalid token" });
 		}
