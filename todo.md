@@ -1,7 +1,9 @@
-- ~~periodically update exchange rates~~
-- ~~forex admin page~~
-- ~~tls/ssl~~
-- ~~profit making mechanism~~
-- ~~dispatch forex~~
-- ~~exchange forex~~
-- ~~purchase external~~
+- orchestration - kubernetes
+- nginx - load balancer, api gateway, reverse proxy
+- other cloud components tbd
+- integrations
+    - forex client with forex admin
+    - loyalty with forex client
+    - offers with forex admin
+    - offers with sms ( hopefully )
+    - loyalty points with some booking service ( hopefully )
