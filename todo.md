@@ -9,5 +9,6 @@
         - loyalty with forex client
         - loyalty points with some booking service ( hopefully )
     - Siddhi
+        - offers with loyalty, more loyal, more offers
         - offers with forex admin
         - offers with sms ( hopefully )
