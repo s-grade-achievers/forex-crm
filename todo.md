@@ -1,9 +1,13 @@
-- orchestration - kubernetes
-- nginx - load balancer, api gateway, reverse proxy
-- other cloud components tbd
+-Shusrith
+    - orchestration - kubernetes
+    - nginx - load balancer, api gateway, reverse proxy
+    - other cloud components tbd
 - integrations
-    - forex client with forex admin
-    - loyalty with forex client
-    - offers with forex admin
-    - offers with sms ( hopefully )
-    - loyalty points with some booking service ( hopefully )
+    - Sourabh
+        - forex client with forex admin
+    - Smera
+        - loyalty with forex client
+        - loyalty points with some booking service ( hopefully )
+    - Siddhi
+        - offers with forex admin
+        - offers with sms ( hopefully )
