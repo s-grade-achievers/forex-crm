@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: forex
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+    networks:
+      - forex-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Main Backend Server (Node.js)
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      DB_NAME: forex
+      JWT_SECRET_PHRASE: hellofromclient007
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dummy-api:
+        condition: service_started
+      master:
+        condition: service_started
+    networks:
+      - forex-network
+
+  # Dummy API Server
+  dummy-api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dummy-api
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - forex-network
+
+  # Master Server
+  master:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.master
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - forex-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - forex-network
+    environment:
+      - REACT_APP_API_URL=http://localhost:4000
+      - REACT_APP_DUMMY_API_URL=http://localhost:3001
+      - REACT_APP_MASTER_URL=http://localhost:5000
+
+networks:
+  forex-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
