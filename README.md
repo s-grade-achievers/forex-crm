@@ -12,6 +12,7 @@ Each branch should contain a Dockerfile and a folder named with your microservic
     1. transaction ledger
     2. inventory
     3. secure transactions
+    4. exchange rate info
 - ## loyalty program
 - ## offers
 

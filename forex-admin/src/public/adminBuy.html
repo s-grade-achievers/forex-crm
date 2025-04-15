@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Payments Portal</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f4f4f9;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+			}
+
+			.payment-container {
+				background: #ffffff;
+				padding: 20px;
+				border-radius: 8px;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+				width: 400px;
+			}
+
+			.payment-container h1 {
+				text-align: center;
+				margin-bottom: 20px;
+				font-size: 24px;
+				color: #333;
+			}
+
+			.payment-container label {
+				display: block;
+				margin-bottom: 5px;
+				font-weight: bold;
+				color: #555;
+			}
+
+			.payment-container input,
+			.payment-container select {
+				width: 100%;
+				padding: 10px;
+				margin-bottom: 15px;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+			}
+
+			.payment-container button {
+				width: 100%;
+				padding: 10px;
+				background-color: #007bff;
+				color: white;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 16px;
+			}
+
+			.payment-container button:hover {
+				background-color: #0056b3;
+			}
+
+			.payment-container .message {
+				margin-top: 15px;
+				text-align: center;
+				font-size: 14px;
+				color: green;
+			}
+
+			#exchangeRate,
+			#payable {
+				margin-top: 10px;
+				font-size: 16px;
+				font-weight: bold;
+				color: #333;
+				text-align: center;
+				background-color: #f9f9f9;
+				padding: 10px;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="payment-container">
+			<h1>Payments Portal</h1>
+			<label for="fromCurrency">From Currency</label>
+			<select id="fromCurrency" required></select>
+
+			<label for="toCurrency">To Currency</label>
+			<select id="toCurrency" required></select>
+			<label for="amount">Amount</label>
+			<input
+				type="number"
+				id="amount"
+				placeholder="Enter amount"
+				required
+			/>
+			<div id="exchangeRate"></div>
+			<div id="payable"></div>
+			<button id="makePayment">Make Payment</button>
+			<div class="message" id="message"></div>
+		</div>
+
+		<script src="adminBuy.js"></script>
+	</body>
+</html>
