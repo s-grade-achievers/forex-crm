@@ -6,19 +6,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 	const payableAmountDisplay = document.getElementById("payable");
 	const paymentButton = document.getElementById("makePayment");
 
-	let currencyPairs = []; 
+	let currencyPairs = [];
 	try {
 		const response = await fetch("/api/fetchPairs");
 		currencyPairs = await response.json();
-
+		console.log("Fetched currency pairs:", currencyPairs);
 		const uniqueFromCurrencies = Array.from(
-			new Set(currencyPairs.map((pair) => pair.fromCurrency))
+			new Set(currencyPairs.map((pair) => pair.fromcurrency))
 		);
 
-		uniqueFromCurrencies.forEach((fromCurrency) => {
+		uniqueFromCurrencies.forEach((fromcurrency) => {
 			const option = document.createElement("option");
-			option.value = fromCurrency;
-			option.textContent = fromCurrency;
+			option.value = fromcurrency;
+			option.textContent = fromcurrency;
 			fromCurrencyDropdown.appendChild(option);
 		});
 
@@ -28,13 +28,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 			toCurrencyDropdown.innerHTML = "";
 
 			const filteredPairs = currencyPairs.filter(
-				(pair) => pair.fromCurrency === selectedFromCurrency
+				(pair) => pair.fromcurrency === selectedFromCurrency
 			);
 
 			filteredPairs.forEach((pair) => {
 				const option = document.createElement("option");
-				option.value = pair.toCurrencyId;
-				option.textContent = pair.toCurrency;
+				option.value = pair.tocurrencyid;
+				option.textContent = pair.tocurrency;
 				toCurrencyDropdown.appendChild(option);
 			});
 
@@ -57,16 +57,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 			const selectedPair = currencyPairs.find(
 				(pair) =>
-					pair.fromCurrency === selectedFromCurrency &&
-					pair.toCurrencyId === parseInt(selectedToCurrencyId)
+					pair.fromcurrency === selectedFromCurrency &&
+					pair.tocurrencyid === parseInt(selectedToCurrencyId)
 			);
 
 			if (selectedPair) {
-				exchangeRateDisplay.textContent = `Exchange Rate: ${selectedPair.exchangeRate}`;
+				exchangeRateDisplay.textContent = `Exchange Rate: ${selectedPair.exchangerate}`;
 
 				if (!isNaN(enteredAmount)) {
 					const payableAmount =
-						enteredAmount / selectedPair.exchangeRate;
+						enteredAmount / selectedPair.exchangerate;
 					payableAmountDisplay.textContent = `Amount Payable: ${payableAmount.toFixed(
 						2
 					)} ${selectedFromCurrency}`;
@@ -86,8 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 			const selectedPair = currencyPairs.find(
 				(pair) =>
-					pair.fromCurrency === selectedFromCurrency &&
-					pair.toCurrencyId === parseInt(selectedToCurrencyId)
+					pair.fromcurrency === selectedFromCurrency &&
+					pair.tocurrencyid === parseInt(selectedToCurrencyId)
 			);
 
 			if (!selectedPair || isNaN(enteredAmount) || enteredAmount <= 0) {
@@ -104,9 +104,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
-						userId: 0,
-						fromCurrencyId: selectedPair.fromCurrencyId,
-						toCurrencyId: selectedPair.toCurrencyId,
+						userid: 0,
+						fromcurrencyid: selectedPair.fromcurrencyid,
+						tocurrencyid: selectedPair.tocurrencyid,
 						amount: enteredAmount,
 					}),
 				});
@@ -122,9 +122,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 						Authorization: `Bearer ${token}`,
 					},
 					body: JSON.stringify({
-						userId: 0,
-						fromCurrencyId: selectedPair.fromCurrencyId,
-						toCurrencyId: selectedPair.toCurrencyId,
+						userid: 0,
+						fromcurrencyid: selectedPair.fromcurrencyid,
+						tocurrencyid: selectedPair.tocurrencyid,
 						amount: enteredAmount,
 					}),
 				});

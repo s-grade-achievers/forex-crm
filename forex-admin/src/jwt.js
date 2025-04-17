@@ -5,9 +5,9 @@ const { JWT_SECRET } = process.env;
 
 const generateToken = () => {
 	const payload = {
-		userId: 123,
-		fromCurrency: 1,
-        toCurrency: 2,
+		userid: 123,
+		fromcurrency: 1,
+        tocurrency: 2,
 		amount: 1000,
 	};
 	const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });

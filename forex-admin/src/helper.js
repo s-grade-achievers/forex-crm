@@ -44,19 +44,19 @@ async function verifyToken(token) {
 	}
 }
 
-async function generateToken(userId, fromCurrency = null, toCurrency, amount) {
+async function generateToken(userid, fromcurrency = null, tocurrency, amount) {
 	let payload;
-	if (!fromCurrency) {
+	if (!fromcurrency) {
 		payload = {
-			userId: userId,
-			currency: fromCurrency,
+			userid: userid,
+			currency: fromcurrency,
 			amount: amount,
 		};
 	} else {
 		payload = {
-			userId: userId,
-			fromCurrency: fromCurrency,
-			toCurrency: toCurrency,
+			userid: userid,
+			fromcurrency: fromcurrency,
+			tocurrency: tocurrency,
 			amount: amount,
 		};
 	}

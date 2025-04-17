@@ -1,18 +1,18 @@
 version: "3.8"
 
 services:
-    mssql:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        container_name: sqlserver
+    postgres1:
+        image: postgres:14
+        container_name: postgres1
         environment:
-            ACCEPT_EULA: "Y"
-            SA_PASSWORD: ${MSSQL_DB_PASS}
+            POSTGRES_USER: ${POSTGRES_DB_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_DB_PASS}
+            POSTGRES_DB: ${POSTGRES_DB_NAME}
         ports:
-            - "1433:1433"
+            - "5433:5432"
         volumes:
-            - sql_data:/var/opt/mssql
-            - ./forex-admin/db:/db
-        entrypoint: ["/bin/sh", "/db/entrypoint.sh"]
+            - postgres1_data:/var/lib/postgresql/data
+            - ./forex-admin/db/init.sql:/docker-entrypoint-initdb.d/init.sql
         networks:
             - backend
 
@@ -20,17 +20,17 @@ services:
         build: forex-admin
         container_name: admin
         environment:
-            DB_HOST: ${MSSQL_DB_HOST}
-            DB_USER: ${MSSQL_DB_USER}
-            DB_PASS: ${MSSQL_DB_PASS}
-            DB_NAME: ${MSSQL_DB_NAME}
+            DB_HOST: ${POSTGRES_DB_HOST}1
+            DB_USER: ${POSTGRES_DB_USER}
+            DB_PASS: ${POSTGRES_DB_PASS}
+            DB_NAME: ${POSTGRES_DB_NAME}
             JWT_SECRET: ${JWT_SECRET}
         depends_on:
-            - mssql
+            - postgres1
         networks:
             - backend
-        volumes:
-            - ./forex-admin/src:/app/src
+        # volumes:
+        #     - ./forex-admin/src:/app/src
         ports:
             - 3000:3000
 
@@ -121,6 +121,7 @@ services:
 volumes:
     sql_data:
     postgres_data:
+    postgres1_data:
 
 networks:
     backend:

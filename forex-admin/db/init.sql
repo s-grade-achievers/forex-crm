@@ -1,40 +1,34 @@
 CREATE DATABASE forexCrm;
-GO
 
-USE forexCrm;
-GO
-
-CREATE TABLE forexReserves (
-    id INT PRIMARY KEY,
-    currency NVARCHAR(3) NOT NULL,
-    amount DECIMAL(18, 2) NOT NULL,
+CREATE TABLE forexreserves (
+    id SERIAL PRIMARY KEY,
+    currency VARCHAR(3) NOT NULL,
+    amount NUMERIC(18, 2) NOT NULL
 );
-GO
 
-CREATE TABLE exchangeablePairs (
-    id INT PRIMARY KEY,
-    fromCurrency INT NOT NULL,
-    toCurrency INT NOT NULL,
-    exchangeRate DECIMAL(18, 6) NOT NULL,
-    lastUpdated DATETIME NOT NULL DEFAULT GETDATE(),
-    CONSTRAINT uniquePair UNIQUE (fromCurrency, toCurrency),
-    foreign KEY (fromCurrency) REFERENCES forexReserves(id),
-    foreign KEY (toCurrency) REFERENCES forexReserves(id)
+CREATE TABLE exchangeablepairs (
+    id SERIAL PRIMARY KEY,
+    fromcurrency INT NOT NULL,
+    tocurrency INT NOT NULL,
+    exchangeRate NUMERIC(18, 6) NOT NULL,
+    lastUpdated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uniquePair UNIQUE (fromcurrency, tocurrency),
+    FOREIGN KEY (fromcurrency) REFERENCES forexreserves(id),
+    FOREIGN KEY (tocurrency) REFERENCES forexreserves(id)
 );
-GO
 
-CREATE TABLE transactionLedger (
-    id INT PRIMARY KEY IDENTITY(1,1),
+CREATE TABLE transactionledger (
+    id SERIAL PRIMARY KEY,
     userId INT NOT NULL,
-    transactionDate DATETIME NOT NULL DEFAULT GETDATE(),
-    exchangePair INT NOT NULL,
-    amount DECIMAL(18, 2) NOT NULL,
-    exchangeRate DECIMAL(18, 6) NOT NULL,
-    FOREIGN KEY (exchangePair) REFERENCES exchangeablePairs(id),
+    transactiondate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    exchangepair INT NOT NULL,
+    amount NUMERIC(18, 2) NOT NULL,
+    exchangeRate NUMERIC(18, 6) NOT NULL,
+    FOREIGN KEY (exchangepair) REFERENCES exchangeablepairs(id)
 );
-GO
 
-INSERT INTO forexReserves (id, currency, amount) VALUES
+-- Insert data into forexreserves
+INSERT INTO forexreserves (id, currency, amount) VALUES
 (1, 'USD', 1000000000.00),
 (2, 'EUR', 900000000.00),
 (3, 'GBP', 800000000.00),
@@ -43,10 +37,10 @@ INSERT INTO forexReserves (id, currency, amount) VALUES
 (6, 'CAD', 650000000.00),
 (7, 'AUD', 600000000.00),
 (8, 'NZD', 550000000.00),
-(9, 'INR', 30000000000.00);  
-GO
+(9, 'INR', 30000000000.00);
 
-INSERT INTO exchangeablePairs (id, fromCurrency, toCurrency, exchangeRate) VALUES
+-- Insert data into exchangeablepairs
+INSERT INTO exchangeablepairs (id, fromcurrency, tocurrency, exchangeRate) VALUES
 (1, 1, 2, 1.085000),    -- USD/EUR
 (2, 1, 3, 1.265000),    -- USD/GBP
 (3, 1, 4, 151.200000),  -- USD/JPY
@@ -85,4 +79,3 @@ INSERT INTO exchangeablePairs (id, fromCurrency, toCurrency, exchangeRate) VALUE
 (36, 9, 6, 0.016000),   -- INR/CAD
 (37, 9, 7, 0.018000),   -- INR/AUD
 (38, 9, 8, 0.020000);   -- INR/NZD
-GO

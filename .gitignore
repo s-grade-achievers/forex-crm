@@ -1,4 +1,5 @@
-*.txt
+secret.txt
+token.txt
 *.cert
 *.key
 __pycache__/

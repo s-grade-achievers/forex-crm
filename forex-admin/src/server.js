@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const mssql = require("mssql");
+const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const fs = require("fs");
 const https = require("https");
@@ -23,37 +23,39 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
 app.use(express.json());
 
-const config = {
+const pool = new Pool({
+	host: DB_HOST,
 	user: DB_USER,
 	password: DB_PASS,
-	server: DB_HOST,
 	database: DB_NAME,
-	options: {
-		encrypt: true,
-		trustServerCertificate: true,
-	},
-};
+	port: 5432,
+});
 
-async function connectWithRetry(retries = 10, delay = 3000) {
+async function connectWithRetry(retries = 5, delay = 3000) {
 	for (let i = 0; i < retries; i++) {
 		try {
-			const pool = await mssql.connect(config);
-			console.log("Connected to MSSQL");
+			await pool.connect();
+			console.log("Connected to PostgreSQL");
 			return pool;
 		} catch (err) {
-			console.log(
-				` Connection attempt ${i + 1} failed. Retrying in ${
-					delay / 1000
-				}s...`
+			console.error(
+				`Connection attempt ${i + 1} failed: ${
+					err.message
+				}. Retrying in ${delay / 1000} seconds...`
 			);
-			await new Promise((res) => setTimeout(res, delay));
+			if (i < retries - 1) {
+				await new Promise((resolve) => setTimeout(resolve, delay));
+			} else {
+				throw new Error(
+					"Failed to connect to PostgreSQL after multiple attempts."
+				);
+			}
 		}
 	}
-	throw new Error("Failed to connect to MSSQL after multiple attempts.");
 }
 
 connectWithRetry()
-	.then((pool) => {
+	.then(() => {
 		app.locals.db = pool;
 
 		const server = https.createServer(sslOptions, app);
@@ -62,40 +64,42 @@ connectWithRetry()
 		});
 	})
 	.catch((err) => {
-		console.error("Could not start server due to DB issues:", err.message);
+		console.error(
+			"Could not start server due to DB connection issues:",
+			err.message
+		);
 		process.exit(1);
 	});
 
-app.get("/api/fetchPairs", (req, res) => {
+app.get("/api/fetchPairs", async (req, res) => {
 	const db = req.app.locals.db;
-	db.query(
-		`SELECT 
-            f.currency AS fromCurrency,
-			f.id AS fromCurrencyId,
-            f1.currency AS toCurrency,
-			f1.id AS toCurrencyId,
-			e.exchangeRate
-        FROM 
-            forexReserves AS f 
-        JOIN 
-            exchangeablePairs AS e 
-        ON 
-            f.id = e.fromCurrency 
-        JOIN 
-            forexReserves AS f1 
-        ON 
-            f1.id = e.toCurrency`,
-		(err, result) => {
-			if (err) {
-				console.error("Error fetching pairs:", err);
-				return res.status(500).json({ error: "Internal server error" });
-			}
-			if (result.recordset.length === 0) {
-				return res.status(404).json({ message: "No pairs found" });
-			}
-			res.json(result.recordsets[0]);
+	try {
+		const result = await db.query(
+			`SELECT 
+                f.currency AS "fromcurrency",
+                f.id AS "fromcurrencyid",
+                f1.currency AS "tocurrency",
+                f1.id AS "tocurrencyid",
+                e."exchangerate"
+            FROM 
+                "forexreserves" AS f 
+            JOIN 
+                "exchangeablepairs" AS e 
+            ON 
+                f.id = e."fromcurrency" 
+            JOIN 
+                "forexreserves" AS f1 
+            ON 
+                f1.id = e."tocurrency"`
+		);
+		if (result.rows.length === 0) {
+			return res.status(404).json({ message: "No pairs found" });
 		}
-	);
+		res.json(result.rows);
+	} catch (err) {
+		console.error("Error fetching pairs:", err);
+		res.status(500).json({ error: "Internal server error" });
+	}
 });
 
 app.put("/api/updateExchangeRate", async (req, res) => {
@@ -103,39 +107,39 @@ app.put("/api/updateExchangeRate", async (req, res) => {
 	const endpoint = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/`;
 
 	try {
-		const result = await db.query("SELECT id, currency FROM forexReserves");
-		const mappings = result.recordset.reduce((acc, row) => {
+		const result = await db.query(
+			'SELECT id, currency FROM "forexreserves"'
+		);
+		const mappings = result.rows.reduce((acc, row) => {
 			acc[row.currency] = row.id;
 			return acc;
 		}, {});
-		const currencies = result.recordset.map((row) => row.currency);
-		const exchangeRates = await exchangeRatesHelper(
+		const currencies = result.rows.map((row) => row.currency);
+		const exchangerates = await exchangeRatesHelper(
 			currencies,
 			endpoint,
 			mappings
 		);
 		const pairs = await db.query(
-			"SELECT fromCurrency, toCurrency FROM exchangeablePairs"
+			'SELECT "fromcurrency", "tocurrency" FROM "exchangeablepairs"'
 		);
-		pairs.recordset.forEach(async (pair) => {
-			const fromCurrency = pair.fromCurrency;
-			const toCurrency = pair.toCurrency;
-			if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
+		for (const pair of pairs.rows) {
+			const fromcurrency = pair.fromcurrency;
+			const tocurrency = pair.tocurrency;
+			if (!exchangerates[fromcurrency] || !exchangerates[tocurrency]) {
 				console.error(
-					`Exchange rate not found for ${fromCurrency} to ${toCurrency}`
+					`Exchange rate not found for ${fromcurrency} to ${tocurrency}`
 				);
-				return;
+				continue;
 			}
-			const rate = exchangeRates[fromCurrency][toCurrency];
-			await db
-				.request()
-				.input("fromCurrency", mssql.Int, fromCurrency)
-				.input("toCurrency", mssql.Int, toCurrency)
-				.input("rate", mssql.Decimal(18, 6), rate)
-				.query(
-					"UPDATE exchangeablePairs SET exchangeRate = @rate WHERE fromCurrency = @fromCurrency AND toCurrency = @toCurrency"
-				);
-		});
+			const rate = exchangerates[fromcurrency][tocurrency];
+			await db.query(
+				`UPDATE "exchangeablepairs" 
+                 SET "exchangerate" = $1 
+                 WHERE "fromcurrency" = $2 AND "tocurrency" = $3`,
+				[rate, fromcurrency, tocurrency]
+			);
+		}
 		res.json({ message: "Exchange rates updated successfully" });
 	} catch (error) {
 		console.error("Error updating exchange rates:", error);
@@ -152,67 +156,76 @@ app.post("/api/buyCurrency", async (req, res) => {
 	}
 
 	try {
-		const { userId, fromCurrency, toCurrency, amount } =
-			await verifyToken(token);
-
-		if (!fromCurrency || !toCurrency || !amount) {
+		const { userid, fromcurrency, tocurrency, amount } = await verifyToken(
+			token
+		);
+		if (!fromcurrency || !tocurrency || !amount) {
 			console.log("Invalid token payload");
 			return res.status(402).json({ message: "Invalid token" });
 		}
 
-		const exchangeablePairResult = await db
-			.request()
-			.input("fromCurrency", mssql.Int, fromCurrency)
-			.input("toCurrency", mssql.Int, toCurrency)
-			.query(
-				"SELECT * FROM exchangeablePairs WHERE fromCurrency = @fromCurrency AND toCurrency = @toCurrency"
-			);
+		const exchangeablePairResult = await db.query(
+			`SELECT * FROM "exchangeablepairs" 
+             WHERE "fromcurrency" = $1 AND "tocurrency" = $2`,
+			[fromcurrency, tocurrency]
+		);
 
-		if (exchangeablePairResult.recordset.length === 0) {
+		if (exchangeablePairResult.rows.length === 0) {
 			return res.status(404).json({ message: "Invalid currency pair" });
 		}
-		const exchangeablePair = exchangeablePairResult.recordset[0];
+		const exchangeablePair = exchangeablePairResult.rows[0];
 
-		await db
-			.request()
-			.input("userId", mssql.Int, userId)
-			.input("exchangePair", mssql.Int, exchangeablePair.id)
-			.input("amount", mssql.Decimal(18, 2), amount)
-			.input(
-				"exchangeRate",
-				mssql.Decimal(18, 2),
-				exchangeablePair.exchangeRate
-			)
-			.query(
-				"INSERT INTO transactionLedger (userId, exchangePair, amount, exchangeRate) VALUES (@userId, @exchangePair, @amount, @exchangeRate)"
-			);
-		const fromCurrencyId = exchangeablePair.fromCurrency;
-		const toCurrencyId = exchangeablePair.toCurrency;
-		const paidAmount = amount * exchangeablePair.exchangeRate;
+		await db.query(
+			`INSERT INTO "transactionledger" 
+             ("userid", "exchangepair", "amount", "exchangerate") 
+             VALUES ($1, $2, $3, $4)`,
+			[userid, exchangeablePair.id, amount, exchangeablePair.exchangerate]
+		);
 
-		await db
-			.request()
-			.input("paidAmount", mssql.Decimal(18, 2), paidAmount)
-			.input("fromCurrency", mssql.Int, fromCurrencyId)
-			.query(
-				"UPDATE forexReserves SET amount = amount - @paidAmount WHERE id = @fromCurrency"
-			);
+		const fromcurrencyId = exchangeablePair.fromcurrency;
+		const tocurrencyId = exchangeablePair.tocurrency;
+		const paidAmount = amount * exchangeablePair.exchangerate;
 
-		await db
-			.request()
-			.input("amount", mssql.Decimal(18, 2), amount)
-			.input("toCurrency", mssql.Int, toCurrencyId)
-			.query(
-				"UPDATE forexReserves SET amount = amount + @amount WHERE id = @toCurrency"
-			);
+		await db.query(
+			`UPDATE "forexreserves" 
+             SET amount = amount - $1 
+             WHERE id = $2`,
+			[paidAmount, fromcurrencyId]
+		);
 
-		const newToken = await generateToken(userId, fromCurrency, amount);
+		await db.query(
+			`UPDATE "forexreserves" 
+             SET amount = amount + $1 
+             WHERE id = $2`,
+			[amount, tocurrencyId]
+		);
+
+		const newToken = await generateToken(userid, fromcurrency, amount);
 		res.status(200).json({
 			message: "Transaction successful",
 			newToken: newToken,
 		});
 	} catch (error) {
 		console.error("Error processing transaction:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+});
+
+app.get("/api/currentReserves", async (req, res) => {
+	const db = req.app.locals.db;
+
+	try {
+		const currentReservesResult = await db.query(
+			'SELECT currency, amount FROM "forexreserves"'
+		);
+
+		if (currentReservesResult.rows.length === 0) {
+			return res.status(404).json({ message: "No reserves found" });
+		}
+
+		res.json(currentReservesResult.rows);
+	} catch (error) {
+		console.error("Error fetching current reserves:", error);
 		res.status(500).json({ error: "Internal server error" });
 	}
 });
@@ -225,75 +238,56 @@ app.get("/admin", async (req, res) => {
 	res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
+app.get("/adminBuy", async (req, res) => {
+	res.sendFile(path.join(__dirname, "public", "adminBuy.html"));
+});
+
 app.get("/api/transactionHistory", async (req, res) => {
 	const db = req.app.locals.db;
 
 	try {
-		const transactionHistoryResult = await db.request().query(
-			`SELECT 
-					t.id AS transactionId,
-					t.userId,
-					t.transactionDate,
-					f.currency AS fromCurrency,
-					f1.currency AS toCurrency,
-					t.amount,
-					t.exchangeRate
-				FROM 
-					transactionLedger AS t 
-				JOIN 
-					exchangeablePairs AS e ON t.exchangePair = e.id
-				JOIN 
-					forexReserves AS f ON e.fromCurrency = f.id
-				JOIN 
-					forexReserves AS f1 ON e.toCurrency = f1.id`
-		);
+		const transactionHistoryResult = await db.query(`
+			SELECT 
+				t.id AS "transactionid",
+				t."userid",
+				t."transactiondate",
+				f.currency AS "fromcurrency",
+				f1.currency AS "tocurrency",
+				t.amount,
+				t."exchangerate"
+			FROM 
+				"transactionledger" t
+			JOIN 
+				"exchangeablepairs" e ON t."exchangepair" = e.id
+			JOIN 
+				"forexreserves" f ON e."fromcurrency" = f.id
+			JOIN 
+				"forexreserves" f1 ON e."tocurrency" = f1.id
+		`);
 
-		if (transactionHistoryResult.recordset.length === 0) {
+		if (transactionHistoryResult.rows.length === 0) {
 			return res.status(404).json({ message: "No transactions found" });
 		}
 
-		res.json(transactionHistoryResult.recordsets[0]);
+		res.json(transactionHistoryResult.rows);
 	} catch (error) {
 		console.error("Error fetching transaction history:", error);
 		res.status(500).json({ error: "Internal server error" });
 	}
 });
 
-app.get("/api/currentReserves", async (req, res) => {
-	const db = req.app.locals.db;
-
-	try {
-		const currentReservesResult = await db
-			.request()
-			.query("SELECT currency, amount FROM forexReserves");
-
-		if (currentReservesResult.recordset.length === 0) {
-			return res.status(404).json({ message: "No reserves found" });
-		}
-
-		res.json(currentReservesResult.recordsets[0]);
-	} catch (error) {
-		console.error("Error fetching current reserves:", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
-});
-
-app.get("/adminBuy", async (req, res) => {
-	res.sendFile(path.join(__dirname, "public", "adminBuy.html"));
-});
-
 app.post("/api/generateToken", async (req, res) => {
-	const { userId, fromCurrencyId, toCurrencyId, amount } = req.body;
-	if (userId !== 0 || !fromCurrencyId || !toCurrencyId || !amount) {
+	const { userid, fromcurrencyid, tocurrencyid, amount } = req.body;
+	if (userid !== 0 || !fromcurrencyid || !tocurrencyid || !amount) {
 		console.log("here");
 		return res.status(400).json({ message: "Missing required fields" });
 	}
 
 	try {
 		const token = await generateToken(
-			userId,
-			fromCurrencyId,
-			toCurrencyId,
+			userid,
+			fromcurrencyid,
+			tocurrencyid,
 			amount
 		);
 		res.status(200).json({ token });
