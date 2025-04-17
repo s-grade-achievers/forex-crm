@@ -1,5 +1,5 @@
 - Shusrith
-    - orchestration - kubernetes
+    - ~~orchestration - kubernetes~~
     - nginx - load balancer, api gateway, reverse proxy
     - other cloud components tbd
 - integrations
