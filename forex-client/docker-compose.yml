@@ -40,37 +40,6 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
-            dummy-api:
-                condition: service_started
-            master:
-                condition: service_started
-        networks:
-            - forex-network
-
-    dummy-api:
-        build:
-            context: ./server
-            dockerfile: Dockerfile.dummy-api
-        ports:
-            - "3001:3001"
-        volumes:
-            - ./server:/app
-            - /app/node_modules
-        networks:
-            - forex-network
-
-    master:
-        build:
-            context: ./server
-            dockerfile: Dockerfile.master
-        ports:
-            - "5000:5000"
-        volumes:
-            - ./server:/app
-            - /app/node_modules
-        depends_on:
-            postgres:
-                condition: service_healthy
         networks:
             - forex-network
 
@@ -79,7 +48,7 @@ services:
             context: ./client
             dockerfile: Dockerfile
         ports:
-            - "3000:3000"
+            - "3001:3001"
         volumes:
             - ./client:/app
             - /app/node_modules
@@ -89,8 +58,6 @@ services:
             - forex-network
         environment:
             - REACT_APP_API_URL=http://localhost:4000
-            - REACT_APP_DUMMY_API_URL=http://localhost:3001
-            - REACT_APP_MASTER_URL=http://localhost:5000
 
 networks:
     forex-network:

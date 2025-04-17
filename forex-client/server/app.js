@@ -12,8 +12,8 @@ app.use(cors());
 const JWT_SECRET = process.env.JWT_SECRET_PHRASE ;
 
 // Environment variables with fallbacks
-const dummyApiUrl = process.env.DUMMY_API_URL || 'http://dummy-api:3001';
-const masterApiUrl = process.env.MASTER_API_URL || 'http://master:5000';
+const dummyApiUrl = process.env.DUMMY_API_URL || 'http://admin:3000';
+const masterApiUrl = process.env.MASTER_API_URL || 'http://admin:3000';
 
 app.get('/api/getPairs', async (req, res) => {
   try {
