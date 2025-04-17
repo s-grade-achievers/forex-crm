@@ -1,12 +1,13 @@
-# forex-admin-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
     name: forex-admin
     namespace: forex-crm
 spec:
+    selector:
+        app: forex-admin
     ports:
         - port: 3000
           targetPort: 3000
-    selector:
-        app: forex-admin
+          nodePort: 30080
+    type: NodePort

@@ -16,7 +16,8 @@ spec:
         spec:
             containers:
                 - name: frontend
-                  image: forex-crm_forex-client:latest
+                  image: forex-crm_frontend:latest
+                  imagePullPolicy: Never
                   ports:
                       - containerPort: 3001
                   env:

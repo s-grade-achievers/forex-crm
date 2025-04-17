@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: backend
+    namespace: forex-crm
+spec:
+    selector:
+        app: backend
+    ports:
+        - protocol: TCP
+          port: 4000
+          targetPort: 4000
+          nodePort: 32000
+    type: NodePort

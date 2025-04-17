@@ -16,7 +16,8 @@ spec:
         spec:
             containers:
                 - name: forex-admin
-                  image: froex-crm_forex-admin:latest
+                  image: forex-crm_forex-admin:latest
+                  imagePullPolicy: Never
                   ports:
                       - containerPort: 3000
                   env:
@@ -25,26 +26,23 @@ spec:
                       - name: DB_USER
                         valueFrom:
                             secretKeyRef:
-                                name: mssql-secret
+                                name: forex-admin-secret
                                 key: DB_USER
                       - name: DB_PASS
                         valueFrom:
                             secretKeyRef:
-                                name: mssql-secret
+                                name: forex-admin-secret
                                 key: DB_PASS
                       - name: DB_NAME
                         valueFrom:
                             secretKeyRef:
-                                name: mssql-secret
+                                name: forex-admin-secret
                                 key: DB_NAME
                       - name: JWT_SECRET
                         valueFrom:
                             secretKeyRef:
                                 name: jwt-secret
                                 key: JWT_SECRET
-                  volumeMounts:
-                      - name: admin-src
-                        mountPath: /app/src
                   resources:
                       requests:
                           memory: "256Mi"
@@ -52,7 +50,3 @@ spec:
                       limits:
                           memory: "512Mi"
                           cpu: "400m"
-            volumes:
-                - name: admin-src
-                  persistentVolumeClaim:
-                      claimName: admin-src-pvc

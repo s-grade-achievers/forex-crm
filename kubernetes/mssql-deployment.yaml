@@ -1,4 +1,3 @@
-# mssql-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,23 +26,19 @@ spec:
                             secretKeyRef:
                                 name: mssql-secret
                                 key: SA_PASSWORD
+                  command: ["/bin/sh", "/db/entrypoint.sh"]
                   volumeMounts:
                       - name: sql-data
                         mountPath: /var/opt/mssql
-                      - name: db-scripts
+                      - name: init-script-volume
                         mountPath: /db
-                  resources:
-                        requests:
-                            memory: "256Mi"
-                            cpu: "200m"
-                        limits:
-                            memory: "512Mi"
-                            cpu: "400m"
+                        readOnly: true
 
             volumes:
                 - name: sql-data
                   persistentVolumeClaim:
                       claimName: sql-data-pvc
-                - name: db-scripts
+                - name: init-script-volume
                   configMap:
-                      name: db-scripts
+                      name: mssql-init-scripts
+                      defaultMode: 0755

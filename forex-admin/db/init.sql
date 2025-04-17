@@ -1,7 +1,7 @@
-CREATE DATABASE TestDB;
+CREATE DATABASE forexCrm;
 GO
 
-USE TestDB;
+USE forexCrm;
 GO
 
 CREATE TABLE forexReserves (

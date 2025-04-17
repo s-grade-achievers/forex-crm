@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend
+    namespace: forex-crm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: backend
+    template:
+        metadata:
+            labels:
+                app: backend
+        spec:
+            containers:
+                - name: backend
+                  image: forex-crm_backend:latest
+                  imagePullPolicy: Never
+                  ports:
+                      - containerPort: 4000
+                  env:
+                      - name: NODE_ENV
+                        value: production
+                      - name: DB_HOST
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB_HOST
+                      - name: DB_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB_PORT
+                      - name: DB_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_USER
+                      - name: DB_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_PASSWORD
+                      - name: DB_NAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB
+                      - name: JWT_SECRET_PHRASE
+                        valueFrom:
+                            secretKeyRef:
+                                name: jwt-secret
+                                key: JWT_SECRET
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "200m"
+                      limits:
+                          memory: "512Mi"
+                          cpu: "400m"
