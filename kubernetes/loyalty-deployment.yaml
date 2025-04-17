@@ -16,11 +16,12 @@ spec:
             containers:
                 - name: loyalty-service
                   image: forex-crm_loyalty-service:latest
+                  imagePullPolicy: Never
                   ports:
                       - containerPort: 8001
                   volumeMounts:
                       - name: loyalty-code
-                        mountPath: /app
+                        mountPath: /app/db
 
                   resources:
                       requests:

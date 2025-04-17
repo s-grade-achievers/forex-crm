@@ -5,8 +5,10 @@ metadata:
     name: postgres
     namespace: forex-crm
 spec:
+    selector:
+        app: postgres
     ports:
         - port: 5432
           targetPort: 5432
-    selector:
-        app: postgres
+          nodePort: 32002
+    type: NodePort
