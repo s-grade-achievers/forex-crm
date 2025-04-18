@@ -10,15 +10,13 @@ kubectl apply -f postgres-deployment.yaml
 kubectl apply -f postgres-service.yaml
 kubectl apply -f forex-admin-deployment.yaml
 kubectl apply -f forex-admin-service.yaml
-# kubectl apply -f postgres-deployment.yaml
-# kubectl apply -f postgres-service.yaml
-# kubectl apply -f backend-deployment.yaml
-# kubectl apply -f backend-service.yaml
-# kubectl apply -f frontend-deployment.yaml
-# kubectl apply -f frontend-service.yaml
-# kubectl apply -f web-deployment.yaml
-# kubectl apply -f web-service.yaml
-# kubectl apply -f loyalty-deployment.yaml
-# kubectl apply -f loyalty-service.yaml
+kubectl apply -f backend-deployment.yaml
+kubectl apply -f backend-service.yaml
+kubectl apply -f frontend-deployment.yaml
+kubectl apply -f frontend-service.yaml
+kubectl apply -f web-deployment.yaml
+kubectl apply -f web-service.yaml
+kubectl apply -f loyalty-deployment.yaml
+kubectl apply -f loyalty-service.yaml
 
 # kubectl delete namespace forex-crm
