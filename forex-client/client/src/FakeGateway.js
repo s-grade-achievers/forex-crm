@@ -16,6 +16,7 @@ export default function PaymentProcessing() {
 		time,
 		accountId,
 		username,
+		grandTotal,
 	} = state || {};
 
 	const handleProceed = async () => {
@@ -25,6 +26,7 @@ export default function PaymentProcessing() {
 				toCurrencyId,
 				userID: accountId,
 				amount,
+				grandTotal
 			});
 
 			const { signedAck } = res.data;

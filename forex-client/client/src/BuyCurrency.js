@@ -4,6 +4,11 @@ import { Navigate } from "react-router-dom";
 import "./App.css";
 import { BASE_URL } from "./apiConfig.js";
 
+
+function getKeyByValue(obj, value) {
+	return Object.keys(obj).find(key => obj[key] === value);
+}
+
 export class App extends PureComponent {
 	state = {
 		optionsTo: {},
@@ -42,7 +47,7 @@ export class App extends PureComponent {
 	};
 
 	handleBuy = async () => {
-		const { from, to, amount, conversion } = this.state;
+		const { from, to, amount, conversion, optionsTo, optionsFrom } = this.state;
 
 		if (!from || !to || !amount) {
 			this.setState({ message: "Please fill all fields" });
@@ -51,6 +56,8 @@ export class App extends PureComponent {
 		console.log("conversion:", conversion);
 		const rateKey = `${from}_${to}`;
 		const demand = conversion[rateKey];
+		const toName = getKeyByValue(optionsTo, to);
+		const fromName = getKeyByValue(optionsFrom, from);
 
 		if (!demand) {
 			this.setState({
@@ -68,8 +75,10 @@ export class App extends PureComponent {
 				rate: demand,
 				accountId: "12345",
 				username: "Sourabh",
+				toName: toName,
+				fromName: fromName,
 			});
-
+			console.log(toName, fromName);
 			if (res.status === 200) {
 				const bill = res.data.bill;
 				this.setState({

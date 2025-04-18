@@ -31,7 +31,7 @@ const pool = new Pool({
 	port: 5432,
 });
 
-async function connectWithRetry(retries = 5, delay = 3000) {
+async function connectWithRetry(retries = 25, delay = 3000) {
 	for (let i = 0; i < retries; i++) {
 		try {
 			await pool.connect();

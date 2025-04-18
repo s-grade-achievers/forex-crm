@@ -56,6 +56,7 @@ export default function PaymentProcessing() {
 							<th className="p-2">Balance</th>
 							<th className="p-2">Created</th>
 							<th className="p-2">Updated</th>
+							<th className="p-2">Points</th>
 						</tr>
 					</thead>
 					<tbody>
