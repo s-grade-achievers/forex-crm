@@ -14,13 +14,16 @@ export default function Payments() {
 		accountId,
 		username,
 		time,
+		toName,
+		fromName
 	} = state || {};
-
+	
 	const handlingCharge = convertedAmount * 0.05;
 	const grandTotal = convertedAmount + handlingCharge;
-
+	const toThis = `Converted Amount (${fromName})`
+	const fromThis = `Amount Paid (${toName})`
 	const handleProceed = () => {
-		navigate("/fakeGateway", { state: { ...state } });
+		navigate("/fakeGateway", { state: { ...state, grandTotal } });
 	};
 
 	return (
@@ -50,9 +53,9 @@ export default function Payments() {
 					/>
 					<Row label="To Currency (ID)" value={`${toCurrencyId}`} />
 					<Row label="Exchange Rate" value={`1 : ${rate}`} />
-					<Row label="Amount Paid (INR)" value={amount} />
+					<Row label={"Amount Paid"} value={amount} />
 					<Row
-						label="Converted Amount (EUR)"
+						label= {"Converted Amount"}
 						value={convertedAmount.toFixed(4)}
 					/>
 					<Row
@@ -60,7 +63,7 @@ export default function Payments() {
 						value={handlingCharge.toFixed(4)}
 					/>
 					<Row
-						label="Grand Total (EUR)"
+						label="Grand Total "
 						value={grandTotal.toFixed(4)}
 					/>
 					<Row label="Transaction Time" value={time} />

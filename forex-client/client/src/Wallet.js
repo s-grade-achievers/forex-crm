@@ -77,9 +77,7 @@ export default function PaymentProcessing() {
 										wallet.updated_at
 									).toLocaleDateString()}
 								</td>
-								<td className="p-2">
-									${parseFloat(wallet.points).toFixed(2)}
-								</td>
+								
 							</tr>
 						))}
 					</tbody>

@@ -19,6 +19,9 @@ const adminHost = process.env.ADMIN_HOST || 'admin';
 const adminPort = process.env.ADMIN_PORT || '3000';
 const adminUrl = `${adminProtocol}://${adminHost}:${adminPort}`;
 
+const host = process.env.LOYALTY_SERVICE_HOST || 'loyalty-service' ;
+const port = process.env.LOYALTY_SERVICE_PORT || '8001';
+const loyaltyServiceUrl = `http://${host}:${port}`;
 
 const agent = new https.Agent({
 	rejectUnauthorized: false
@@ -104,10 +107,6 @@ app.get("/api/getPairs", async (req, res) => {
 app.post("/api/forexPayment", (req, res) => {
 	const { fromCurrencyId, toCurrencyId, amount, rate, accountId, username } =
 		req.body;
-	const convertedAmount = amount * rate;
-
-	userPoints = await axios.post()
-
 
 	const bill = {
 		fromCurrencyId,
@@ -118,7 +117,7 @@ app.post("/api/forexPayment", (req, res) => {
 		amount,
 		convertedAmount,
 		time: new Date().toLocaleString(),
-		points: 0|| userPoints
+		grandTotal
 	};
 	console.log(`Bill generated:`, bill);
 	res.json({ message: "Transaction sent for approval", bill });
@@ -148,9 +147,21 @@ app.post("/api/verifyPayment", async (req, res) => {
         if (!payload.amount) {
             return res.status(400).json({ message: "Missing amount" });
         }
+        if (!payload.grandTotal) {
+            return res.status(400).json({ message: "Missing grand total" });
+        }
+
+        const userId = payload.userID || payload.accountId;
+        
+        try {
+            await updatePoints(userId, payload.grandTotal);
+            console.log("Points updated successfully");
+        } catch (pointsError) {
+            console.error("Error updating points:", pointsError);
+        }
 
         const tokenPayload = {
-            userid: payload.userID || payload.accountId,
+            userid: userId,
             fromcurrency: payload.fromCurrency || payload.fromCurrencyId,
             tocurrency: payload.toCurrency || payload.toCurrencyId,
             amount: payload.amount,
@@ -220,7 +231,6 @@ app.post("/api/verifyPayment", async (req, res) => {
 
 app.post("/api/confirmTransaction", async (req, res) => {
 	const dataForSQL = req.body;
-
 	try {
 		console.log("Transaction confirmed:", dataForSQL);
 		res.status(200).send("Transaction acknowledged");
@@ -232,7 +242,6 @@ app.post("/api/confirmTransaction", async (req, res) => {
 
 async function updateWallet(userId, amount, fromCurrency) {
 	let client;
-
 	try {
 		client = await pool.connect();
 		console.log(
@@ -243,7 +252,7 @@ async function updateWallet(userId, amount, fromCurrency) {
 
 		const checkQuery = `
       SELECT * FROM wallets 
-      WHERE user_id = $1 AND currency_id = $2
+        WHERE user_id = $1 AND currency_id = $2
     `;
 
 		const checkResult = await client.query(checkQuery, [
@@ -260,7 +269,7 @@ async function updateWallet(userId, amount, fromCurrency) {
         INSERT INTO wallets (user_id, currency_id, balance, created_at, updated_at)
         VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
-      `;
+        `;
 
 			const createResult = await client.query(createQuery, [
 				userId,
@@ -276,9 +285,8 @@ async function updateWallet(userId, amount, fromCurrency) {
         SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP
         WHERE user_id = $2 AND currency_id = $3
         RETURNING *
-      `;
-
-			const updateResult = await client.query(updateQuery, [
+        `;
+		const updateResult = await client.query(updateQuery, [
 				amount,
 				userId,
 				fromCurrency,
@@ -325,6 +333,26 @@ app.get("/api/wallet/:userId", async (req, res) => {
 		}
 	}
 });
+
+
+async function updatePoints(userID, amount) {
+    try {
+        console.log(`Updating points for user ${userID} with amount ${amount}`);
+        const response = await axios.post(
+            `${loyaltyServiceUrl}/wallet/${userID}/add`,
+            { payment_amount: amount }, 
+            {
+                timeout: 5000
+            }
+        );
+        console.log("Loyalty points updated:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Failed to update loyalty points:", error.response?.data || error.message);
+        throw error;
+    }
+}
+
 
 app.listen(4000, () => {
 	console.log(`Server running on port: 4000`);
