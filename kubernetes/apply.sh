@@ -2,10 +2,12 @@ kubectl apply -f namespace.yaml
 kubectl apply -f jwt-secret.yaml
 kubectl apply -f pvc.yaml
 kubectl apply -f postgres-secret.yaml
-kubectl create configmap postgres1-initdb-script --from-file=../forex-admin/db/init.sql -n forex-crm
-kubectl create configmap postgres-initdb-script --from-file=../forex-client/initdb.sql -n forex-crm
-kubectl apply -f postgres1-deployment.yaml
-kubectl apply -f postgres1-service.yaml
+kubectl create configmap postgres-initdb-scripts \
+    --from-file=postgres1-init.sql=../forex-admin/db/init.sql \
+    --from-file=postgres-init.sql=../forex-client/initdb.sql \
+    -n forex-crm
+kubectl apply -f postgres-deployment.yaml
+kubectl apply -f postgres-service.yaml
 kubectl apply -f forex-admin-deployment.yaml
 kubectl apply -f forex-admin-service.yaml
 # kubectl apply -f postgres-deployment.yaml

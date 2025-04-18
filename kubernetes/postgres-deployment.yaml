@@ -37,9 +37,13 @@ spec:
                   volumeMounts:
                       - name: postgres-data
                         mountPath: /var/lib/postgresql/data
-                      - name: init-db-script
-                        mountPath: /docker-entrypoint-initdb.d/initdb.sql
-                        subPath: initdb.sql
+                      - name: init-db-scripts
+                        mountPath: /docker-entrypoint-initdb.d/postgres1-init.sql
+                        subPath: postgres1-init.sql
+                        readOnly: true
+                      - name: init-db-scripts
+                        mountPath: /docker-entrypoint-initdb.d/postgres-init.sql
+                        subPath: postgres-init.sql
                         readOnly: true
                   resources:
                       requests:
@@ -52,6 +56,6 @@ spec:
                 - name: postgres-data
                   persistentVolumeClaim:
                       claimName: postgres-data-pvc
-                - name: init-db-script
+                - name: init-db-scripts
                   configMap:
-                      name: postgres-initdb-script
+                      name: postgres-initdb-scripts
