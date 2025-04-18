@@ -1,0 +1,60 @@
+# forex-admin-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: forex-admin
+    namespace: forex-crm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: forex-admin
+    template:
+        metadata:
+            labels:
+                app: forex-admin
+        spec:
+            containers:
+                - name: forex-admin
+                  image: forex-crm_forex-admin:latest
+                  imagePullPolicy: Never
+                  ports:
+                      - containerPort: 3000
+                  env:
+                      - name: DB_HOST
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB_HOST
+                      - name: DB_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB_PORT
+                      - name: DB_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_USER
+                      - name: DB_PASS
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_PASSWORD
+                      - name: DB_NAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB
+                      - name: JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: jwt-secret
+                                key: JWT_SECRET
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "200m"
+                      limits:
+                          memory: "512Mi"
+                          cpu: "400m"

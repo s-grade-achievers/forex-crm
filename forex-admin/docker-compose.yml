@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+    postgres:
+        image: postgres:14
+        container_name: postgres
+        environment:
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASS}
+            POSTGRES_DB: ${DB_NAME}
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./db:/docker-entrypoint-initdb.d
+        networks:
+            - backend
+
+    forex-admin:
+        build: .
+        container_name: admin
+        environment:
+            DB_HOST: ${DB_HOST}
+            DB_USER: ${DB_USER}
+            DB_PASS: ${DB_PASS}
+            DB_NAME: ${DB_NAME}
+            JWT_SECRET: ${JWT_SECRET}
+        depends_on:
+            - postgres
+        networks:
+            - backend
+        volumes:
+            - ./src:/app/src
+            - ./tests:/app/tests
+        ports:
+            - "3000:3000"
+
+volumes:
+    postgres_data:
+
+networks:
+    backend:
+        driver: bridge

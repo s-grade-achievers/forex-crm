@@ -1,0 +1,16 @@
+CREATE TABLE wallets (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    currency_id INTEGER NOT NULL,
+    balance NUMERIC NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    points INTEGER
+);
+
+INSERT INTO wallets (user_id, currency_id, balance) VALUES 
+  (1, 101, 500.00),
+  (2, 102, 1200.75),
+  (3, 101, 300.00),
+  (4, 103, 0.00),
+  (5, 104, 9999.99);

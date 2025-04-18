@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: web
+    namespace: forex-crm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: web
+    template:
+        metadata:
+            labels:
+                app: web
+        spec:
+            containers:
+                - name: web
+                  image: forex-crm_web:latest
+                  imagePullPolicy: Never
+                  ports:
+                      - containerPort: 8000
+                  command:
+                      [
+                          "uvicorn",
+                          "main:app",
+                          "--host",
+                          "0.0.0.0",
+                          "--port",
+                          "8000",
+                      ]
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "200m"
+                      limits:
+                          memory: "512Mi"
+                          cpu: "400m"

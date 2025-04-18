@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: loyalty-service
+    namespace: forex-crm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: loyalty-service
+    template:
+        metadata:
+            labels:
+                app: loyalty-service
+        spec:
+            containers:
+                - name: loyalty-service
+                  image: forex-crm_loyalty-service:latest
+                  imagePullPolicy: Never
+                  ports:
+                      - containerPort: 8001
+                  volumeMounts:
+                      - name: loyalty-code
+                        mountPath: /app/db
+
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "200m"
+                      limits:
+                          memory: "512Mi"
+                          cpu: "400m"
+            volumes:
+                - name: loyalty-code
+                  persistentVolumeClaim:
+                      claimName: loyalty-code-pvc

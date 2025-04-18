@@ -1,0 +1,116 @@
+version: "3.8"
+
+services:
+    forex-admin:
+        build: forex-admin
+        container_name: admin
+        environment:
+            DB_HOST: ${POSTGRES_DB_HOST}
+            DB_USER: ${POSTGRES_DB_USER}
+            DB_PASS: ${POSTGRES_DB_PASS}
+            DB_NAME: ${POSTGRES_DB_NAME}
+            JWT_SECRET: ${JWT_SECRET}
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - backend
+        ports:
+            - 3000:3000
+
+    postgres:
+        image: postgres:14
+        container_name: postgres
+        environment:
+            POSTGRES_USER: ${POSTGRES_DB_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_DB_PASS}
+            POSTGRES_DB: ${POSTGRES_DB_NAME}
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./forex-admin/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+            - ./forex-client/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    backend:
+        build:
+            context: ./forex-client/server
+            dockerfile: Dockerfile
+        container_name: forex-wallet
+        environment:
+            NODE_ENV: ${NODE_ENV}
+            DB_HOST: ${POSTGRES_DB_HOST}
+            DB_PORT: ${POSTGRES_DB_PORT}
+            DB_USER: ${POSTGRES_DB_USER}
+            DB_PASSWORD: ${POSTGRES_DB_PASS}
+            DB_NAME: ${POSTGRES_DB_NAME}
+            JWT_SECRET_PHRASE: ${JWT_SECRET}
+            ADMIN_HOST: admin
+            ADMIN_PROTOCOL: https
+            ADMIN_PORT: 3000
+        ports:
+            - "4000:4000"
+        volumes:
+            - /app/node_modules
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - backend
+
+    frontend:
+        build:
+            context: ./forex-client/client
+            dockerfile: Dockerfile
+        container_name: forex-client
+        ports:
+            - "3001:3001"
+        volumes:
+            - ./forex-client/client:/app
+            - /app/node_modules
+        depends_on:
+            - backend
+        networks:
+            - backend
+        environment:
+            REACT_APP_API_URL: ${REACT_APP_API_URL}
+            REACT_APP_DUMMY_API_URL: ${REACT_APP_DUMMY_API_URL}
+            REACT_APP_MASTER_URL: ${REACT_APP_MASTER_URL}
+
+    web:
+        build:
+            context: ./offers
+        container_name: offers
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./offers:/app
+        command: uvicorn main:app --host 0.0.0.0 --port 8000
+        networks:
+            - backend
+
+    loyalty-service:
+        build:
+            context: ./loyalty
+            dockerfile: Dockerfile
+        container_name: loyalty-service
+        ports:
+            - "8001:8001"
+        volumes:
+            - ./loyalty:/app
+
+volumes:
+    sql_data:
+    postgres_data:
+    postgres1_data:
+
+networks:
+    backend:
+        driver: bridge

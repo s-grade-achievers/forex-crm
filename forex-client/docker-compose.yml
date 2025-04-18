@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+    postgres:
+        image: postgres:14
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: 1234
+            POSTGRES_DB: forex
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+        networks:
+            - forex-network
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    backend:
+        build:
+            context: ./server
+            dockerfile: Dockerfile
+        environment:
+            NODE_ENV: production
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_USER: postgres
+            DB_PASSWORD: 1234
+            DB_NAME: forex
+            JWT_SECRET_PHRASE: hellofromclient007
+        ports:
+            - "4000:4000"
+        volumes:
+            - ./server:/app
+            - /app/node_modules
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - forex-network
+
+    frontend:
+        build:
+            context: ./client
+            dockerfile: Dockerfile
+        ports:
+            - "3001:3001"
+        volumes:
+            - ./client:/app
+            - /app/node_modules
+        depends_on:
+            - backend
+        networks:
+            - forex-network
+        environment:
+            - REACT_APP_API_URL=http://localhost:4000
+
+networks:
+    forex-network:
+        driver: bridge
+
+volumes:
+    postgres_data:

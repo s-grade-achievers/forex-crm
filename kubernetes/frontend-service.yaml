@@ -1,0 +1,14 @@
+# frontend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+    name: frontend
+    namespace: forex-crm
+spec:
+    selector:
+        app: frontend
+    ports:
+        - port: 3001
+          targetPort: 3001
+          nodePort: 32001
+    type: NodePort

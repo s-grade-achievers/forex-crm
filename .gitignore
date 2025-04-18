@@ -1,0 +1,6 @@
+secret.txt
+token.txt
+*.cert
+*.key
+__pycache__/
+*.db
