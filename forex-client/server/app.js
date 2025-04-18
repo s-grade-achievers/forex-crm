@@ -12,8 +12,8 @@ app.use(cors());
 const JWT_SECRET = process.env.JWT_SECRET_PHRASE;
 
 // Environment variables with fallbacks
-const dummyApiUrl = process.env.DUMMY_API_URL || 'http://admin:3000';
-const masterApiUrl = process.env.MASTER_API_URL || 'http://admin:3000';
+const dummyApiUrl = process.env.DUMMY_API_URL || "http://admin:3000";
+const masterApiUrl = process.env.MASTER_API_URL || "http://admin:3000";
 
 app.get("/api/getPairs", async (req, res) => {
 	try {
@@ -65,11 +65,11 @@ app.post("/api/forexPayment", (req, res) => {
 });
 
 const pool = new Pool({
-	user: process.env.DB_USER || "postgres",
-	host: process.env.DB_HOST || "postgres", // Use service name in Docker
-	database: process.env.DB_NAME || "forex",
-	password: process.env.DB_PASSWORD || "1234",
-	port: process.env.DB_PORT || 5432,
+	user: process.env.DB_USER,
+	host: process.env.DB_HOST,
+	database: process.env.DB_NAME,
+	password: process.env.DB_PASSWORD,
+	port: process.env.DB_PORT,
 });
 
 app.post("/api/verifyPayment", async (req, res) => {
