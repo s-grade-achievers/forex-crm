@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-    name: sql-data-pvc
+    name: postgres1-data-pvc
     namespace: forex-crm
 spec:
     accessModes:
         - ReadWriteOnce
     resources:
         requests:
-            storage: 5Gi
+            storage: 1Gi
 
 ---
 apiVersion: v1
@@ -21,7 +21,7 @@ spec:
         - ReadWriteOnce
     resources:
         requests:
-            storage: 5Gi
+            storage: 1Gi
 
 ---
 apiVersion: v1

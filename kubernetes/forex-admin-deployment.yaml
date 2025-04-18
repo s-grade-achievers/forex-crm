@@ -22,22 +22,30 @@ spec:
                       - containerPort: 3000
                   env:
                       - name: DB_HOST
-                        value: mssql
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB_HOST
+                      - name: DB_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB_PORT
                       - name: DB_USER
                         valueFrom:
                             secretKeyRef:
-                                name: forex-admin-secret
-                                key: DB_USER
+                                name: postgres-secret
+                                key: POSTGRES_USER
                       - name: DB_PASS
                         valueFrom:
                             secretKeyRef:
-                                name: forex-admin-secret
-                                key: DB_PASS
+                                name: postgres-secret
+                                key: POSTGRES_PASSWORD
                       - name: DB_NAME
                         valueFrom:
                             secretKeyRef:
-                                name: forex-admin-secret
-                                key: DB_NAME
+                                name: postgres-secret
+                                key: POSTGRES_DB
                       - name: JWT_SECRET
                         valueFrom:
                             secretKeyRef:

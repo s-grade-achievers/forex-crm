@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: postgres1
+    namespace: forex-crm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: postgres1
+    template:
+        metadata:
+            labels:
+                app: postgres1
+        spec:
+            containers:
+                - name: postgres1
+                  image: postgres:14
+                  ports:
+                      - containerPort: 5432
+                  env:
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_USER
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_PASSWORD
+                      - name: POSTGRES_DB
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgres-secret
+                                key: POSTGRES_DB
+                  volumeMounts:
+                      - name: postgres1-data
+                        mountPath: /var/lib/postgresql/data
+                      - name: init-db-script1
+                        mountPath: /docker-entrypoint-initdb.d/init.sql
+                        subPath: init.sql
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: "512Mi"
+                          cpu: "250m"
+                      limits:
+                          memory: "1Gi"
+                          cpu: "500m"
+            volumes:
+                - name: postgres1-data
+                  persistentVolumeClaim:
+                      claimName: postgres1-data-pvc
+                - name: init-db-script1
+                  configMap:
+                      name: postgres1-initdb-script
