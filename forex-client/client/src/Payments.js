@@ -20,6 +20,7 @@ export default function Payments() {
 	
 	const handlingCharge = convertedAmount * 0.05;
 	const grandTotal = convertedAmount + handlingCharge;
+	
 	const toThis = `Converted Amount (${fromName})`
 	const fromThis = `Amount Paid (${toName})`
 	const handleProceed = () => {
