@@ -20,6 +20,7 @@ kubectl create configmap static-html --from-file=index.html=index.html -n forex-
   -n forex-crm
 kubectl apply -f ingress.yaml
 kubectl apply -f ingress-client.yaml
+kubectl apply -f ingress-https.yaml
 kubectl apply -f nginx-deployment.yaml
 kubectl apply -f nginx-service.yaml
 kubectl apply -f postgres-deployment.yaml
@@ -34,5 +35,6 @@ kubectl apply -f web-deployment.yaml
 kubectl apply -f web-service.yaml
 kubectl apply -f loyalty-deployment.yaml
 kubectl apply -f loyalty-service.yaml
+echo https://api.forex-crm.local
 kubectl exec -it  $(kubectl get pod -n forex-crm -l app=forex-admin -o jsonpath="{.items[0].metadata.name}") -n forex-crm -- node src/server.js
 # kubectl delete namespace forex-crm

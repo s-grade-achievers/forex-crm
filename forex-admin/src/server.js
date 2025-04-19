@@ -19,7 +19,7 @@ const sslOptions = {
 
 const app = express();
 const port = 3000;
-app.use(express.static(path.join(__dirname, "public")));
+app.use("/admin", express.static(path.join(__dirname, "public")));
 
 app.use(cors());
 app.use(express.json());

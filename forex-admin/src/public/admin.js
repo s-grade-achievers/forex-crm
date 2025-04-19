@@ -1,11 +1,9 @@
-const BASE_URL = "http://api.forex-crm.local/api/admin";
+const BASE_URL = "https://api.forex-crm.local/api/admin";
 
 document
 	.getElementById("viewTransactions")
 	.addEventListener("click", async () => {
-		const response = await fetch(
-			`${BASE_URL}/transactionHistory`
-		);
+		const response = await fetch(`${BASE_URL}/transactionHistory`);
 		const data = await response.json();
 		populateTable(data, [
 			"Transaction ID",
@@ -24,9 +22,7 @@ document
 	});
 
 document.getElementById("viewReserves").addEventListener("click", async () => {
-	const response = await fetch(
-		`${BASE_URL}/reserves`
-	);
+	const response = await fetch(`${BASE_URL}/currentReserves`);
 	const data = await response.json();
 	populateTable(data, ["Currency", "Amount"]);
 
@@ -48,7 +44,7 @@ document.getElementById("viewReserves").addEventListener("click", async () => {
 		buyMoreButton.style.cursor = "pointer";
 
 		buyMoreButton.addEventListener("click", () => {
-			window.location.href = "/adminBuy";
+			window.location.href = "/admin/adminBuy";
 		});
 
 		buyMoreContainer.appendChild(buyMoreButton);
@@ -74,14 +70,24 @@ function populateTable(data, headers) {
 		th.textContent = header;
 		tableHeader.appendChild(th);
 	});
-
-	data.forEach((row) => {
+	if (data["message"]) {
 		const tr = document.createElement("tr");
-		Object.values(row).forEach((value) => {
-			const td = document.createElement("td");
-			td.textContent = value;
-			tr.appendChild(td);
-		});
+		const td = document.createElement("td");
+		td.colSpan = headers.length;
+		td.textContent = "No data available";
+		tr.appendChild(td);
 		tableBody.appendChild(tr);
-	});
+		return;
+
+	} else {
+		data.forEach((row) => {
+			const tr = document.createElement("tr");
+			Object.values(row).forEach((value) => {
+				const td = document.createElement("td");
+				td.textContent = value;
+				tr.appendChild(td);
+			});
+			tableBody.appendChild(tr);
+		});
+	}
 }

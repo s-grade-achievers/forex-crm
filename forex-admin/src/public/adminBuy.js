@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
-	const BASE_URL = "http://api.forex-crm.local/api/admin";
+	const BASE_URL = "https://api.forex-crm.local/api/admin";
 	const fromCurrencyDropdown = document.getElementById("fromCurrency");
 	const toCurrencyDropdown = document.getElementById("toCurrency");
 	const amountInput = document.getElementById("amount");
@@ -136,6 +136,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 				const { newToken } = await buyResponse.json();
 				console.log("Payment successful! New token received.");
 				console.log("New Token:", newToken);
+				if (newToken)
+					window.location.href = `/admin/admin`;
 			} catch (error) {
 				console.log("Error during payment:", error);
 				console.log("Payment failed. Please try again.");
