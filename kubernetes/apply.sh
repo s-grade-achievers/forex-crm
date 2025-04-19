@@ -8,13 +8,8 @@ kubectl create configmap postgres-initdb-scripts \
     --from-file=postgres1-init.sql=../forex-admin/db/init.sql \
     --from-file=postgres-init.sql=../forex-client/initdb.sql \
     -n forex-crm
-# kubectl create configmap nginx-config --from-file=default.conf -n forex-crm
 kubectl create configmap static-html --from-file=index.html=index.html -n forex-crm
-# kubectl create secret generic nginx-ssl \
-#     --from-file=nginx.crt=nginx.crt \
-#     --from-file=nginx.key=nginx.key \
-#     -n forex-crm
- kubectl create secret tls forex-crm-tls \
+kubectl create secret tls forex-crm-tls \
   --cert=nginx.crt \
   --key=nginx.key \
   -n forex-crm
