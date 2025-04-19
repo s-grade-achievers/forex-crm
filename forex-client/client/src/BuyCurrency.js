@@ -21,7 +21,7 @@ export class App extends PureComponent {
 
 	async componentDidMount() {
 		try {
-			const res = await axios.get(`${BASE_URL}/api/getPairs`);
+			const res = await axios.get(`${BASE_URL}/getPairs`);
 
 			this.setState({
 				optionsTo: res.data["to"],
@@ -68,7 +68,7 @@ export class App extends PureComponent {
 		}
 
 		try {
-			const res = await axios.post(`${BASE_URL}/api/forexPayment`, {
+			const res = await axios.post(`${BASE_URL}/forexPayment`, {
 				fromCurrencyId: from,
 				toCurrencyId: to,
 				amount: parseFloat(amount),

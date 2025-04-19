@@ -15,7 +15,7 @@ export default function PaymentProcessing() {
 		const fetchWallets = async () => {
 			try {
 				const response = await axios.get(
-					`${BASE_URL}/api/wallet/${accountId}`
+					`${BASE_URL}/wallet/${accountId}`
 				);
 				setWallets(response.data);
 				setLoading(false);

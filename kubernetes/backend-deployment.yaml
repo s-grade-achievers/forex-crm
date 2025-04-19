@@ -52,6 +52,31 @@ spec:
                             secretKeyRef:
                                 name: jwt-secret
                                 key: JWT_SECRET
+                      - name: ADMIN_HOST
+                        valueFrom:
+                            secretKeyRef:
+                                name: admin-secret
+                                key: ADMIN_HOST
+                      - name: ADMIN_PROTOCOL
+                        valueFrom:
+                            secretKeyRef:
+                                name: admin-secret
+                                key: ADMIN_PROTOCOL
+                      - name: ADMIN_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: admin-secret
+                                key: ADMIN_PORT
+                      - name: LOYALTY_SERVICE_HOST
+                        valueFrom:
+                            secretKeyRef:
+                                name: loyalty-service-secret
+                                key: LOYALTY_SERVICE_HOST
+                      - name: LOYALTY_SERVICE_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: loyalty-service-secret
+                                key: LOYALTY_SERVICE_PORT
                   resources:
                       requests:
                           memory: "256Mi"

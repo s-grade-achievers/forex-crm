@@ -5,7 +5,7 @@ from core import rule_engine, offer_generator
 
 app = FastAPI(title="Offers")
 
-@app.get("/offers", response_model=List[Dict[str, Any]])
+@app.get("/api/offers", response_model=List[Dict[str, Any]])
 def get_personalized_offers(user_id: int = Query(..., description="The ID of the user to generate offers for")):
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id parameter is required")

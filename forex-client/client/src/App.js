@@ -3,7 +3,6 @@ import { Routes, Route } from "react-router-dom";
 import BuyCurrency from "./BuyCurrency.js";
 import Payments from "./Payments.js";
 import FakeGateway from "./FakeGateway.js";
-import { BASE_URL } from "./apiConfig.js";
 import Wallet from "./Wallet.js";
 
 export default function App() {

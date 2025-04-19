@@ -7,8 +7,6 @@ spec:
     selector:
         app: loyalty-service
     ports:
-        - protocol: TCP
-          port: 8001
+        - port: 8001
           targetPort: 8001
-          nodePort: 32004
-    type: NodePort
+    type: ClusterIP

@@ -1,7 +1,11 @@
+const BASE_URL = "http://api.forex-crm.local/api/admin";
+
 document
 	.getElementById("viewTransactions")
 	.addEventListener("click", async () => {
-		const response = await fetch("/api/transactionHistory");
+		const response = await fetch(
+			`${BASE_URL}/transactionHistory`
+		);
 		const data = await response.json();
 		populateTable(data, [
 			"Transaction ID",
@@ -20,7 +24,9 @@ document
 	});
 
 document.getElementById("viewReserves").addEventListener("click", async () => {
-	const response = await fetch("/api/currentReserves");
+	const response = await fetch(
+		`${BASE_URL}/reserves`
+	);
 	const data = await response.json();
 	populateTable(data, ["Currency", "Amount"]);
 

@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: client-ingress
+    namespace: forex-crm
+    annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /$2
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+    ingressClassName: nginx
+    tls:
+        - hosts:
+              - api.forex-crm.local
+          secretName: forex-crm-tls
+    rules:
+        - host: api.forex-crm.local
+          http:
+              paths:
+                  - path: /client(/|$)(.*)
+                    pathType: ImplementationSpecific
+                    backend:
+                        service:
+                            name: frontend
+                            port:
+                                number: 3001

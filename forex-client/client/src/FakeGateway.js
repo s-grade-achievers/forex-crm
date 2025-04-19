@@ -21,7 +21,7 @@ export default function PaymentProcessing() {
 
 	const handleProceed = async () => {
 		try {
-			const res = await axios.post(`${BASE_URL}/api/verifyPayment`, {
+			const res = await axios.post(`${BASE_URL}/verifyPayment`, {
 				fromCurrencyId,
 				toCurrencyId,
 				userID: accountId,
@@ -31,7 +31,7 @@ export default function PaymentProcessing() {
 
 			const { signedAck } = res.data;
 
-			await axios.post(`${BASE_URL}/api/confirmTransaction`, {
+			await axios.post(`${BASE_URL}/confirmTransaction`, {
 				signedAck,
 			});
 

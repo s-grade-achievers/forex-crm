@@ -29,9 +29,9 @@ services:
             - postgres
         networks:
             - backend
-        volumes:
-            - ./src:/app/src
-            - ./tests:/app/tests
+        # volumes:
+        #     - ./src:/app/src
+        #     - ./tests:/app/tests
         ports:
             - "3000:3000"
 

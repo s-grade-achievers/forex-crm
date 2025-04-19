@@ -13,11 +13,11 @@ app.use(cors());
 const JWT_SECRET = process.env.JWT_SECRET_PHRASE;
 
 // Environment variables with fallbacks
-const dummyApiUrl = process.env.DUMMY_API_URL || "https://admin:3000";
-const adminProtocol = process.env.ADMIN_PROTOCOL || "https";
-const adminHost = process.env.ADMIN_HOST || "admin";
-const adminPort = process.env.ADMIN_PORT || "3000";
+const adminProtocol = process.env.ADMIN_PROTOCOL;
+const adminHost = process.env.ADMIN_HOST;
+const adminPort = process.env.ADMIN_PORT;
 const adminUrl = `${adminProtocol}://${adminHost}:${adminPort}`;
+console.log(adminHost, adminPort, adminUrl);
 
 const host = process.env.LOYALTY_SERVICE_HOST || "loyalty-service";
 const port = process.env.LOYALTY_SERVICE_PORT || "8001";
@@ -27,7 +27,7 @@ const agent = new https.Agent({
 	rejectUnauthorized: false,
 });
 
-app.get("/api/getPairs", async (req, res) => {
+app.get("/api/backend/getPairs", async (req, res) => {
 	try {
 		console.log("Attempting to connect to admin service via HTTPS...");
 		const httpsAgent = new https.Agent({
@@ -36,7 +36,7 @@ app.get("/api/getPairs", async (req, res) => {
 		});
 
 		// Use the Docker service name and proper port
-		const response = await axios.get(`${adminUrl}/api/fetchPairs`, {
+		const response = await axios.get(`${adminUrl}/api/admin/fetchPairs`, {
 			httpsAgent,
 			timeout: 8000,
 			headers: {
@@ -53,11 +53,9 @@ app.get("/api/getPairs", async (req, res) => {
 
 		if (!data || !Array.isArray(data)) {
 			console.error("Invalid data format received:", data);
-			return res
-				.status(500)
-				.json({
-					error: "Invalid data format received from admin service",
-				});
+			return res.status(500).json({
+				error: "Invalid data format received from admin service",
+			});
 		}
 
 		data.forEach((pair) => {
@@ -113,7 +111,7 @@ app.get("/api/getPairs", async (req, res) => {
 	}
 });
 
-app.post("/api/forexPayment", (req, res) => {
+app.post("/api/backend/forexPayment", (req, res) => {
 	const { fromCurrencyId, toCurrencyId, amount, rate, accountId, username } =
 		req.body;
 
@@ -143,7 +141,7 @@ const pool = new Pool({
 	port: process.env.DB_PORT,
 });
 
-app.post("/api/verifyPayment", async (req, res) => {
+app.post("/api/backend/verifyPayment", async (req, res) => {
 	const payload = req.body;
 
 	try {
@@ -193,7 +191,7 @@ app.post("/api/verifyPayment", async (req, res) => {
 		});
 
 		const response = await axios.post(
-			`${adminUrl}/api/buyCurrency`,
+			`${adminUrl}/api/admin/buyCurrency`,
 			{},
 			{
 				headers: {
@@ -247,7 +245,7 @@ app.post("/api/verifyPayment", async (req, res) => {
 	}
 });
 
-app.post("/api/confirmTransaction", async (req, res) => {
+app.post("/api/backend/confirmTransaction", async (req, res) => {
 	const dataForSQL = req.body;
 	try {
 		console.log("Transaction confirmed:", dataForSQL);
@@ -327,7 +325,7 @@ async function updateWallet(userId, amount, fromCurrency) {
 	}
 }
 
-app.get("/api/wallet/:userId", async (req, res) => {
+app.get("/api/backend/wallet/:userId", async (req, res) => {
 	const userId = req.params.userId;
 	let client;
 	try {

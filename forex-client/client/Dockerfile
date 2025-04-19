@@ -1,5 +1,4 @@
 # Frontend Dockerfile
-# Place this file in the /client directory
 FROM node:18-alpine
 
 WORKDIR /app
@@ -9,19 +8,27 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
+
+# Add react-router-dom and axios (if not in package.json already)
 RUN npm install axios react-router-dom --save
 
-# Copy the rest of the frontend code
+# Copy rest of the app code
 COPY . .
 
-# Create a .env file for environment variables
-RUN echo "REACT_APP_API_URL=http://localhost:4000" > .env
-RUN echo "REACT_APP_DUMMY_API_URL=http://localhost:3001" >> .env 
-RUN echo "REACT_APP_MASTER_URL=http://localhost:5000" >> .env
-
+# Set environment variables
+ENV REACT_APP_API_URL=http://backend:4000
+ENV REACT_APP_DUMMY_API_URL=http://localhost:3001
+ENV REACT_APP_MASTER_URL=http://localhost:5000
 ENV PORT=3001
-# Expose the port the app runs on
+
+# Build the React app
+RUN npm run build
+
+# Install serve to serve static files
+RUN npm install -g serve
+
+# Expose the port
 EXPOSE 3001
 
-# Command to run the app
-CMD ["npm", "start"]
+# Serve the build folder
+CMD ["serve", "-s", "build", "-l", "3001"]

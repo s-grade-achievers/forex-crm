@@ -1,6 +1,5 @@
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://admin:3000';
-const DUMMY_API_URL =
-	process.env.REACT_APP_DUMMY_API_URL || 'http://admin:3000';
-const MASTER_URL = process.env.REACT_APP_MASTER_URL || 'http://admin:3000';
+const BASE_URL = "https://api.forex-crm.local/api/backend";
+const DUMMY_API_URL = "http://api.forex-crm.local/api/admin";
+const MASTER_URL = "http://api.forex-crm.local/api/admin";
 
 export { BASE_URL, DUMMY_API_URL, MASTER_URL };

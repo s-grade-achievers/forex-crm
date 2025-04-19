@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const https = require("https");
 const path = require("path");
+const axios = require("axios");
 const { exchangeRatesHelper, verifyToken, generateToken } = require("./helper");
 
 dotenv.config();
@@ -59,7 +60,7 @@ connectWithRetry()
 		app.locals.db = pool;
 
 		const server = https.createServer(sslOptions, app);
-		server.listen(port, () => {
+		server.listen(port, "0.0.0.0", () => {
 			console.log(`HTTPS Server running on port ${port}`);
 		});
 	})
@@ -71,7 +72,7 @@ connectWithRetry()
 		process.exit(1);
 	});
 
-app.get("/api/fetchPairs", async (req, res) => {
+app.get("/api/admin/fetchPairs", async (req, res) => {
 	const db = req.app.locals.db;
 	try {
 		const result = await db.query(
@@ -102,7 +103,7 @@ app.get("/api/fetchPairs", async (req, res) => {
 	}
 });
 
-app.put("/api/updateExchangeRate", async (req, res) => {
+app.put("/api/admin/updateExchangeRate", async (req, res) => {
 	const db = req.app.locals.db;
 	const endpoint = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/`;
 
@@ -147,7 +148,7 @@ app.put("/api/updateExchangeRate", async (req, res) => {
 	}
 });
 
-app.post("/api/buyCurrency", async (req, res) => {
+app.post("/api/admin/buyCurrency", async (req, res) => {
 	const db = req.app.locals.db;
 	const token = req.headers["authorization"]?.split(" ")[1];
 
@@ -211,7 +212,7 @@ app.post("/api/buyCurrency", async (req, res) => {
 	}
 });
 
-app.get("/api/currentReserves", async (req, res) => {
+app.get("/api/admin/currentReserves", async (req, res) => {
 	const db = req.app.locals.db;
 
 	try {
@@ -230,19 +231,19 @@ app.get("/api/currentReserves", async (req, res) => {
 	}
 });
 
-app.get("/adminLogin", async (req, res) => {
+app.get("/admin/adminLogin", async (req, res) => {
 	res.sendFile(path.join(__dirname, "public", "adminLogin.html"));
 });
 
-app.get("/admin", async (req, res) => {
+app.get("/admin/admin", async (req, res) => {
 	res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
-app.get("/adminBuy", async (req, res) => {
+app.get("/admin/adminBuy", async (req, res) => {
 	res.sendFile(path.join(__dirname, "public", "adminBuy.html"));
 });
 
-app.get("/api/transactionHistory", async (req, res) => {
+app.get("/api/admin/transactionHistory", async (req, res) => {
 	const db = req.app.locals.db;
 
 	try {
@@ -276,7 +277,7 @@ app.get("/api/transactionHistory", async (req, res) => {
 	}
 });
 
-app.post("/api/generateToken", async (req, res) => {
+app.post("/api/admin/generateToken", async (req, res) => {
 	const { userid, fromcurrencyid, tocurrencyid, amount } = req.body;
 	if (userid !== 0 || !fromcurrencyid || !tocurrencyid || !amount) {
 		console.log("here");
@@ -296,3 +297,35 @@ app.post("/api/generateToken", async (req, res) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 });
+
+async function updateExchangeRates() {
+	try {
+		const httpsAgent = new https.Agent({
+			rejectUnauthorized: false,
+		});
+
+		const response = await axios.put(
+			`https://forex-admin.forex-crm.svc.cluster.local:3000/api/admin/updateExchangeRate`,
+			{},
+			{
+				headers: {
+					"Content-Type": "application/json",
+				},
+				httpsAgent,
+			}
+		);
+
+		if (response.status === 200) {
+			console.log("Exchange rates updated successfully");
+		} else {
+			console.error("Failed to update exchange rates:", response.data);
+		}
+	} catch (error) {
+		console.error("Error calling updateExchangeRates API:", error.message);
+	}
+}
+
+setInterval(() => {
+	console.log("Starting periodic exchange rate update...");
+	updateExchangeRates();
+}, 60 * 1000);

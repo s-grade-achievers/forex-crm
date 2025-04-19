@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+	const BASE_URL = "http://api.forex-crm.local/api/admin";
 	const fromCurrencyDropdown = document.getElementById("fromCurrency");
 	const toCurrencyDropdown = document.getElementById("toCurrency");
 	const amountInput = document.getElementById("amount");
@@ -8,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 	let currencyPairs = [];
 	try {
-		const response = await fetch("/api/fetchPairs");
+		const response = await fetch(`${BASE_URL}/fetchPairs`);
 		currencyPairs = await response.json();
 		console.log("Fetched currency pairs:", currencyPairs);
 		const uniqueFromCurrencies = Array.from(
@@ -98,7 +99,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 			}
 
 			try {
-				const tokenResponse = await fetch("/api/generateToken", {
+				const tokenResponse = await fetch(`${BASE_URL}/generateToken`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -115,7 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 				}
 
 				const { token } = await tokenResponse.json();
-				const buyResponse = await fetch("/api/buyCurrency", {
+				const buyResponse = await fetch(`${BASE_URL}/buyCurrency`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
