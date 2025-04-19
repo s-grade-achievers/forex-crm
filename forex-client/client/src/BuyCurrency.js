@@ -4,9 +4,8 @@ import { Navigate } from "react-router-dom";
 import "./App.css";
 import { BASE_URL } from "./apiConfig.js";
 
-
 function getKeyByValue(obj, value) {
-	return Object.keys(obj).find(key => obj[key] === value);
+	return Object.keys(obj).find((key) => obj[key] === value);
 }
 
 export class App extends PureComponent {
@@ -47,7 +46,8 @@ export class App extends PureComponent {
 	};
 
 	handleBuy = async () => {
-		const { from, to, amount, conversion, optionsTo, optionsFrom } = this.state;
+		const { from, to, amount, conversion, optionsTo, optionsFrom } =
+			this.state;
 
 		if (!from || !to || !amount) {
 			this.setState({ message: "Please fill all fields" });

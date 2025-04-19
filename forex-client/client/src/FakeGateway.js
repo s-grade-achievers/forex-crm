@@ -26,7 +26,7 @@ export default function PaymentProcessing() {
 				toCurrencyId,
 				userID: accountId,
 				amount,
-				grandTotal
+				grandTotal,
 			});
 
 			const { signedAck } = res.data;

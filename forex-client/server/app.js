@@ -117,6 +117,8 @@ app.post("/api/forexPayment", (req, res) => {
 	const { fromCurrencyId, toCurrencyId, amount, rate, accountId, username } =
 		req.body;
 
+	const convertedAmount = amount * rate;
+	const grandTotal = convertedAmount * 1.05; // 5% handling charge
 	const bill = {
 		fromCurrencyId,
 		accountId,
@@ -128,6 +130,7 @@ app.post("/api/forexPayment", (req, res) => {
 		time: new Date().toLocaleString(),
 		grandTotal,
 	};
+
 	console.log(`Bill generated:`, bill);
 	res.json({ message: "Transaction sent for approval", bill });
 });

@@ -15,13 +15,14 @@ export default function Payments() {
 		username,
 		time,
 		toName,
-		fromName
+		fromName,
 	} = state || {};
-	
+
 	const handlingCharge = convertedAmount * 0.05;
 	const grandTotal = convertedAmount + handlingCharge;
-	const toThis = `Converted Amount (${fromName})`
-	const fromThis = `Amount Paid (${toName})`
+
+	const toThis = `Converted Amount (${fromName})`;
+	const fromThis = `Amount Paid (${toName})`;
 	const handleProceed = () => {
 		navigate("/fakeGateway", { state: { ...state, grandTotal } });
 	};
@@ -55,17 +56,14 @@ export default function Payments() {
 					<Row label="Exchange Rate" value={`1 : ${rate}`} />
 					<Row label={"Amount Paid"} value={amount} />
 					<Row
-						label= {"Converted Amount"}
+						label={"Converted Amount"}
 						value={convertedAmount.toFixed(4)}
 					/>
 					<Row
 						label="Handling Charges (5%)"
 						value={handlingCharge.toFixed(4)}
 					/>
-					<Row
-						label="Grand Total "
-						value={grandTotal.toFixed(4)}
-					/>
+					<Row label="Grand Total " value={grandTotal.toFixed(4)} />
 					<Row label="Transaction Time" value={time} />
 				</tbody>
 			</table>
