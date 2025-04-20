@@ -342,12 +342,12 @@ async function updatePoints(userID, amount) {
     try {
         console.log(`Updating points for user ${userID} with amount ${amount}`);
         const response = await axios.post(
-            `${loyaltyServiceUrl}/wallet/${userID}/add`,
-            { payment_amount: amount }, 
-            {
-                timeout: 5000
-            }
-        );
+			`${loyaltyServiceUrl}/wallet/${userID}/add?payment_amount=${amount}`,
+			{}, 
+			{
+				timeout: 5000
+			}
+		);
         console.log("Loyalty points updated:", response.data);
         return response.data;
     } catch (error) {
