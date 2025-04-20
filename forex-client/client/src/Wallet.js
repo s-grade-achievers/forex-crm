@@ -7,26 +7,42 @@ export default function PaymentProcessing() {
 	const navigate = useNavigate();
 	const { state } = useLocation();
 	const [wallets, setWallets] = useState([]);
+	const [loyaltyPoints, setLoyaltyPoints] = useState(null);
 	const [loading, setLoading] = useState(true);
 
 	const { accountId, username } = state || {};
 
 	useEffect(() => {
-		const fetchWallets = async () => {
+		const fetchWalletsAndLoyalty = async () => {
 			try {
-				const response = await axios.get(
-					`${BASE_URL}/wallet/${accountId}`
-				);
-				setWallets(response.data);
+				// Fetch wallet and loyalty data
+				const [walletRes, loyaltyRes] = await Promise.all([
+					axios.get(`${BASE_URL}/wallet/${accountId}`),
+					axios.get(
+						`https://api.forex-crm.local/api/wallet/${accountId}`
+					),
+				]);
+
+				const walletData = walletRes.data;
+				const loyaltyData = loyaltyRes.data;
+
+				console.log("Wallet Data:", walletData);
+				console.log("Loyalty Data:", loyaltyData);
+
+				setWallets(walletData);
+				setLoyaltyPoints(loyaltyData);
 				setLoading(false);
 			} catch (error) {
-				console.error("Error fetching wallets:", error);
+				console.error(
+					"Error fetching wallets and loyalty points:",
+					error
+				);
 				setLoading(false);
 			}
 		};
 
 		if (accountId) {
-			fetchWallets();
+			fetchWalletsAndLoyalty();
 		} else {
 			navigate("/login");
 		}
@@ -37,7 +53,7 @@ export default function PaymentProcessing() {
 	};
 
 	if (loading) {
-		return <div>Loading wallets...</div>;
+		return <div>Loading wallets and loyalty points...</div>;
 	}
 
 	return (
@@ -56,7 +72,6 @@ export default function PaymentProcessing() {
 							<th className="p-2">Balance</th>
 							<th className="p-2">Created</th>
 							<th className="p-2">Updated</th>
-							<th className="p-2">Points</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -81,6 +96,24 @@ export default function PaymentProcessing() {
 						))}
 					</tbody>
 				</table>
+			</div>
+
+			<div className="bg-white shadow rounded-lg p-4 mb-6">
+				<h2 className="text-lg font-semibold mb-4">
+					Your Loyalty Points
+				</h2>
+				{loyaltyPoints ? (
+					<div>
+						<p>
+							<strong>User ID:</strong> {loyaltyPoints.user_id}
+						</p>
+						<p>
+							<strong>Points:</strong> {loyaltyPoints.points}
+						</p>
+					</div>
+				) : (
+					<p>No loyalty points available.</p>
+				)}
 			</div>
 
 			<button

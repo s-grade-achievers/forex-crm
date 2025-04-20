@@ -34,7 +34,7 @@ export class App extends PureComponent {
 	}
 
 	handleWallet = () => {
-		const userInfo = { accountId: "12345", username: "Sourabh" };
+		const userInfo = { accountId: "1", username: "Sourabh" };
 		this.setState({
 			redirectToWallet: true,
 			userInfo: userInfo,
@@ -73,7 +73,7 @@ export class App extends PureComponent {
 				toCurrencyId: to,
 				amount: parseFloat(amount),
 				rate: demand,
-				accountId: "12345",
+				accountId: "1",
 				username: "Sourabh",
 				toName: toName,
 				fromName: fromName,

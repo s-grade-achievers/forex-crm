@@ -22,7 +22,7 @@ console.log(adminHost, adminPort, adminUrl);
 const host = process.env.LOYALTY_SERVICE_HOST;
 const port = process.env.LOYALTY_SERVICE_PORT;
 const loyaltyServiceUrl = `http://${host}:${port}`;
-coms
+console.log("Loyalty Service URL:", loyaltyServiceUrl);
 const agent = new https.Agent({
 	rejectUnauthorized: false,
 });
@@ -354,8 +354,8 @@ async function updatePoints(userID, amount) {
 	try {
 		console.log(`Updating points for user ${userID} with amount ${amount}`);
 		const response = await axios.post(
-			`${loyaltyServiceUrl}/api/wallet/${userID}/add`,
-			{ payment_amount: amount },
+			`${loyaltyServiceUrl}/api/wallet/${userID}/add?payment_amount=${amount}`,
+			{},
 			{
 				timeout: 5000,
 			}
