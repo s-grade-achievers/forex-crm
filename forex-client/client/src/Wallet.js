@@ -14,10 +14,25 @@ export default function PaymentProcessing() {
 	useEffect(() => {
 		const fetchWallets = async () => {
 			try {
-				const response = await axios.get(
-					`${BASE_URL}/wallet/${accountId}`
-				);
-				setWallets(response.data);
+				const [walletRes, loyaltyRes] = await Promise.all([
+					axios.get(`${BASE_URL}/wallet/${accountId}`),
+					axios.get(`${BASE_URL}/loyalty/wallet/${accountId}`)
+				]);
+
+				const walletData = walletRes.data;
+				const loyaltyData = loyaltyRes.data;
+
+				const loyaltyMap = {};
+				loyaltyData.forEach((wallet) => {
+					loyaltyMap[wallet.wallet_id] = wallet.points;
+				});
+
+				const mergedWallets = walletData.map((wallet) => ({
+					...wallet,
+					points: loyaltyMap[wallet.id] || 0
+				}));
+
+				setWallets(mergedWallets);
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching wallets:", error);
