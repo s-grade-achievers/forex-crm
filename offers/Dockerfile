@@ -14,5 +14,5 @@ COPY . .
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
+# Command to run migration and then start the app
+CMD ["sh", "-c", "python migrate_wallet_db.py && uvicorn main:app --host 0.0.0.0 --port 8000"]
