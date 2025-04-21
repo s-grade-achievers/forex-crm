@@ -4,6 +4,7 @@ This project is a forex exchange system where users can buy and manage currencie
 
 ## Features
 
+
 ### 1. JWT Authentication
 - **Authorization**: Users are authenticated via JWT tokens to securely access endpoints.
 - **Token-based Security**: Once logged in, users receive a token that is required for subsequent API requests, ensuring secure access.
