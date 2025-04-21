@@ -328,6 +328,7 @@ async function updateWallet(userId, amount, fromCurrency) {
 app.get("/api/backend/wallet/:userId", async (req, res) => {
 	const userId = req.params.userId;
 	let client;
+	
 	try {
 		client = await pool.connect();
 		const result = await client.query(

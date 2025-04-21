@@ -78,7 +78,6 @@ function populateTable(data, headers) {
 		tr.appendChild(td);
 		tableBody.appendChild(tr);
 		return;
-
 	} else {
 		data.forEach((row) => {
 			const tr = document.createElement("tr");
@@ -91,3 +90,4 @@ function populateTable(data, headers) {
 		});
 	}
 }
+

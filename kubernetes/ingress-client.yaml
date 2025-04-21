@@ -24,3 +24,4 @@ spec:
                             name: frontend
                             port:
                                 number: 3001
+

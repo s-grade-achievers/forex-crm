@@ -10,10 +10,13 @@ app = FastAPI(title="Personalized Travel Offer Microservice")
 
 EMAIL_SERVICE_URL = "http://bore.pub:30001/send-offer-email"
 
+
 @app.get("/offers", response_model=List[Dict[str, Any]])
 def get_personalized_offers(
     user_id: int = Query(..., description="The ID of the user to generate offers for"),
-    test_email: str = Query(None, description="Optional test email to override user email")
+    test_email: str = Query(
+        None, description="Optional test email to override user email"
+    ),
 ):
     """Generates and emails personalized travel offers for a given user ID."""
     if not user_id:
@@ -30,7 +33,9 @@ def get_personalized_offers(
         traffic_data = traffic_analyzer.get_trending_destinations()
 
         # 3. Apply rules and generate offers
-        potential_destinations = rule_engine.apply_rules(user_data, trends_data, traffic_data)
+        potential_destinations = rule_engine.apply_rules(
+            user_data, trends_data, traffic_data
+        )
         offers = offer_generator.generate_offers(potential_destinations)
 
         # 4. Send the offers as an email
@@ -38,7 +43,7 @@ def get_personalized_offers(
             email_payload = {
                 "user_id": user_id,
                 "email": user_data.get("email"),
-                "offers": offers
+                "offers": offers,
             }
             response = httpx.post(EMAIL_SERVICE_URL, json=email_payload, timeout=5.0)
             response.raise_for_status()
@@ -51,8 +56,13 @@ def get_personalized_offers(
 
     except Exception as e:
         print(f"Error generating offers for user {user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error generating offers")
+        raise HTTPException(
+            status_code=500, detail="Internal server error generating offers"
+        )
+
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Personalized Travel Offer Microservice! Visit /docs for API documentation."}
+    return {
+        "message": "Welcome to the Personalized Travel Offer Microservice! Visit /docs for API documentation."
+    }

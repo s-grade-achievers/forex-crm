@@ -13,3 +13,4 @@ INSERT INTO wallets (user_id, currency_id, balance) VALUES
   (3, 101, 300.00),
   (4, 103, 0.00),
   (5, 104, 9999.99);
+  

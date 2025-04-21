@@ -13,6 +13,7 @@ kubectl create secret tls forex-crm-tls \
   --cert=nginx.crt \
   --key=nginx.key \
   -n forex-crm
+  
 kubectl apply -f ingress.yaml
 kubectl apply -f ingress-client.yaml
 kubectl apply -f ingress-https.yaml

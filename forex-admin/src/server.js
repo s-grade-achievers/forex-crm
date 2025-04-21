@@ -176,6 +176,27 @@ app.post("/api/admin/buyCurrency", async (req, res) => {
 		}
 		const exchangeablePair = exchangeablePairResult.rows[0];
 
+		const paidAmount = amount * exchangeablePair.exchangerate;
+
+		const reservesResult = await db.query(
+			`SELECT amount FROM "forexreserves" WHERE id = $1`,
+			[exchangeablePair.fromcurrency]
+		);
+
+		if (reservesResult.rows.length === 0) {
+			return res
+				.status(404)
+				.json({ message: "Currency reserves not found" });
+		}
+
+		const availableReserves = reservesResult.rows[0].amount;
+
+		if (availableReserves < paidAmount) {
+			return res.status(400).json({
+				message: "Insufficient reserves for the requested transaction",
+			});
+		}
+
 		await db.query(
 			`INSERT INTO "transactionledger" 
              ("userid", "exchangepair", "amount", "exchangerate") 
@@ -185,7 +206,6 @@ app.post("/api/admin/buyCurrency", async (req, res) => {
 
 		const fromcurrencyId = exchangeablePair.fromcurrency;
 		const tocurrencyId = exchangeablePair.tocurrency;
-		const paidAmount = amount * exchangeablePair.exchangerate;
 
 		await db.query(
 			`UPDATE "forexreserves" 
@@ -211,7 +231,6 @@ app.post("/api/admin/buyCurrency", async (req, res) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 });
-
 app.get("/api/admin/currentReserves", async (req, res) => {
 	const db = req.app.locals.db;
 

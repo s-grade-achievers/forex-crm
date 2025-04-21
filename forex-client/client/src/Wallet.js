@@ -15,7 +15,6 @@ export default function PaymentProcessing() {
 	useEffect(() => {
 		const fetchWalletsAndLoyalty = async () => {
 			try {
-				// Fetch wallet and loyalty data
 				const [walletRes, loyaltyRes] = await Promise.all([
 					axios.get(`${BASE_URL}/wallet/${accountId}`),
 					axios.get(

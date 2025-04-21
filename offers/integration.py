@@ -10,7 +10,16 @@ from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["http://localhost:3000","http://159.223.171.199:56300", "http://localhost:8501", "http://localhost:8000" ])
+CORS(
+    app,
+    supports_credentials=True,
+    origins=[
+        "http://localhost:3000",
+        "http://159.223.171.199:56300",
+        "http://localhost:8501",
+        "http://localhost:8000",
+    ],
+)
 
 # MongoDB
 client = pymongo.MongoClient("mongodb://host.docker.internal:27017")
@@ -18,29 +27,32 @@ db = client["email_db"]
 emails = db["email_notification"]
 
 # Gmail API setup
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+
 
 def get_gmail_service():
     creds = None
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
             creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
+        with open("token.json", "w") as token:
             token.write(creds.to_json())
-    return build('gmail', 'v1', credentials=creds)
+    return build("gmail", "v1", credentials=creds)
+
 
 def create_message(sender, to, subject, message_text):
     message = MIMEText(message_text)
-    message['to'] = to
-    message['from'] = sender
-    message['subject'] = subject
+    message["to"] = to
+    message["from"] = sender
+    message["subject"] = subject
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    return {'raw': raw}
+    return {"raw": raw}
+
 
 @app.route("/send-email", methods=["POST"])
 def send_email():
@@ -60,21 +72,21 @@ def send_email():
     try:
         service = get_gmail_service()
         message = create_message("me", email, subject, body)
-        send_result = service.users().messages().send(userId="me", body=message).execute()
+        send_result = (
+            service.users().messages().send(userId="me", body=message).execute()
+        )
 
-        emails.insert_one({
-            "to": email,
-            "subject": subject,
-            "body": body
-        })
+        emails.insert_one({"to": email, "subject": subject, "body": body})
 
-        return jsonify({"message": "Email sent", "id": send_result['id']}), 200
+        return jsonify({"message": "Email sent", "id": send_result["id"]}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # Create a new database and collection for this client
 suds_db = client["suds_db"]
 suds_emails = suds_db["email"]
+
 
 @app.route("/send-suds-email", methods=["POST"])
 def send_suds_email():
@@ -90,7 +102,18 @@ def send_suds_email():
 
     print("📧 SUDS client email received:", email)
 
-    if not all([email, policy_id, user_id, policy_type, coverage_amount, premium, start_date, end_date]):
+    if not all(
+        [
+            email,
+            policy_id,
+            user_id,
+            policy_type,
+            coverage_amount,
+            premium,
+            start_date,
+            end_date,
+        ]
+    ):
         return jsonify({"error": "Missing required fields"}), 400
 
     subject = "SUDS Policy Confirmation"
@@ -107,29 +130,39 @@ def send_suds_email():
     try:
         service = get_gmail_service()
         message = create_message("me", email, subject, body)
-        send_result = service.users().messages().send(userId="me", body=message).execute()
+        send_result = (
+            service.users().messages().send(userId="me", body=message).execute()
+        )
 
-        suds_emails.insert_one({
-            "to": email,
-            "subject": subject,
-            "body": body,
-            "status": "sent",
-            "message_id": send_result["id"]
-        })
+        suds_emails.insert_one(
+            {
+                "to": email,
+                "subject": subject,
+                "body": body,
+                "status": "sent",
+                "message_id": send_result["id"],
+            }
+        )
 
-        return jsonify({"message": "Email sent to SUDS client", "id": send_result['id']}), 200
+        return (
+            jsonify({"message": "Email sent to SUDS client", "id": send_result["id"]}),
+            200,
+        )
 
     except Exception as e:
-        suds_emails.insert_one({
-            "to": email,
-            "subject": subject,
-            "body": body,
-            "status": "failed",
-            "error": str(e)
-        })
+        suds_emails.insert_one(
+            {
+                "to": email,
+                "subject": subject,
+                "body": body,
+                "status": "failed",
+                "error": str(e),
+            }
+        )
 
         return jsonify({"error": str(e)}), 500
-       
+
+
 @app.route("/send-quote-email", methods=["POST"])
 def send_quote_email():
     data = request.json
@@ -143,18 +176,16 @@ def send_quote_email():
     try:
         service = get_gmail_service()
         message = create_message("me", to, subject, body)
-        send_result = service.users().messages().send(userId="me", body=message).execute()
+        send_result = (
+            service.users().messages().send(userId="me", body=message).execute()
+        )
 
-        emails.insert_one({
-            "to": to,
-            "subject": subject,
-            "body": body
-        })
+        emails.insert_one({"to": to, "subject": subject, "body": body})
 
         return jsonify({"message": "Quote email sent", "id": send_result["id"]}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 
 @app.route("/send-offer-email", methods=["POST"])
 def send_offer_email():
@@ -191,31 +222,37 @@ def send_offer_email():
     try:
         service = get_gmail_service()
         message = create_message("me", email, subject, body)
-        send_result = service.users().messages().send(userId="me", body=message).execute()
+        send_result = (
+            service.users().messages().send(userId="me", body=message).execute()
+        )
 
         # Log in MongoDB
-        emails.insert_one({
-            "to": email,
-            "subject": subject,
-            "body": body,
-            "offers": offers,
-            "status": "sent",
-            "message_id": send_result["id"]
-        })
+        emails.insert_one(
+            {
+                "to": email,
+                "subject": subject,
+                "body": body,
+                "offers": offers,
+                "status": "sent",
+                "message_id": send_result["id"],
+            }
+        )
 
         return jsonify({"message": "Offer email sent", "id": send_result["id"]}), 200
 
     except Exception as e:
-        emails.insert_one({
-            "to": email,
-            "subject": subject,
-            "body": body,
-            "offers": offers,
-            "status": "failed",
-            "error": str(e)
-        })
+        emails.insert_one(
+            {
+                "to": email,
+                "subject": subject,
+                "body": body,
+                "offers": offers,
+                "status": "failed",
+                "error": str(e),
+            }
+        )
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',port=5002, debug=True)
+    app.run(host="0.0.0.0", port=5002, debug=True)
