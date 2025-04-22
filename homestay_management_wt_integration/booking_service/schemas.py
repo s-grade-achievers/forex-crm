@@ -7,6 +7,7 @@ class BookingBase(BaseModel):
     start_date: date
     end_date: date
     status: str
+    amount: int
 
 class BookingCreate(BookingBase):
     pass
