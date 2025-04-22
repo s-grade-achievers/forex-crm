@@ -6,8 +6,11 @@ from sqlalchemy.orm import Session
 from flask_cors import CORS  # Import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})  # Allow frontend origin
+CORS(
+    app, resources={r"/*": {"origins": "http://localhost:5173"}}
+)  # Allow frontend origin
 Base.metadata.create_all(bind=engine)
+
 
 def get_db():
     db = SessionLocal()
@@ -16,17 +19,21 @@ def get_db():
     finally:
         db.close()
 
-@app.route('/rooms', methods=['GET'])
+
+@app.route("/rooms", methods=["GET"])
 def get_rooms():
     db: Session = next(get_db())
-    homestay_id = request.args.get('homestay_id')
+    homestay_id = request.args.get("homestay_id")
     if homestay_id:
-        rooms = db.query(RoomModel).filter(RoomModel.homestay_id == int(homestay_id)).all()
+        rooms = (
+            db.query(RoomModel).filter(RoomModel.homestay_id == int(homestay_id)).all()
+        )
     else:
         rooms = db.query(RoomModel).all()
     return jsonify([RoomSchema.from_orm(r).dict() for r in rooms])
 
-@app.route('/rooms/<int:id>', methods=['GET'])
+
+@app.route("/rooms/<int:id>", methods=["GET"])
 def get_room(id):
     db: Session = next(get_db())
     room = db.query(RoomModel).filter(RoomModel.id == id).first()
@@ -34,7 +41,8 @@ def get_room(id):
         return jsonify({"error": "Room not found"}), 404
     return jsonify(RoomSchema.from_orm(room).dict())
 
-@app.route('/rooms', methods=['POST'])
+
+@app.route("/rooms", methods=["POST"])
 def create_room():
     db: Session = next(get_db())
     data = request.get_json()
@@ -45,7 +53,8 @@ def create_room():
     db.refresh(room)
     return jsonify(RoomSchema.from_orm(room).dict()), 201
 
-@app.route('/rooms/<int:id>', methods=['PUT'])
+
+@app.route("/rooms/<int:id>", methods=["PUT"])
 def update_room(id):
     db: Session = next(get_db())
     room = db.query(RoomModel).filter(RoomModel.id == id).first()
@@ -53,7 +62,7 @@ def update_room(id):
         return jsonify({"error": "Room not found"}), 404
     data = request.get_json()
     for key, value in data.items():
-        if key != 'availability':
+        if key != "availability":
             setattr(room, key, value)
         else:
             current = room.availability or {}
@@ -62,7 +71,8 @@ def update_room(id):
     db.commit()
     return jsonify(RoomSchema.from_orm(room).dict())
 
-@app.route('/rooms/<int:id>', methods=['DELETE'])
+
+@app.route("/rooms/<int:id>", methods=["DELETE"])
 def delete_room(id):
     db: Session = next(get_db())
     room = db.query(RoomModel).filter(RoomModel.id == id).first()
@@ -72,31 +82,34 @@ def delete_room(id):
     db.commit()
     return jsonify({"message": "Room deleted"}), 200
 
-@app.route('/rooms/<int:id>/availability', methods=['GET'])
+
+@app.route("/rooms/<int:id>/availability", methods=["GET"])
 def get_availability(id):
     db: Session = next(get_db())
     room = db.query(RoomModel).filter(RoomModel.id == id).first()
     if not room:
-        return jsonify({"error": "Room not found"}), 404
+        return jsonify({"error": "Room not found"}), 200
     return jsonify(room.availability or {})
 
-@app.route('/rooms/<int:id>/set_availability', methods=['POST'])
+
+@app.route("/rooms/<int:id>/set_availability", methods=["POST"])
 def set_availability(id):
     db: Session = next(get_db())
     room = db.query(RoomModel).filter(RoomModel.id == id).first()
     if not room:
-        return jsonify({"error": "Room not found"}), 404
+        return jsonify({"error": "Room not found"}), 200
     data = request.get_json()
-    dates = data.get('dates', [])
-    status = data.get('status')
+    dates = data.get("dates", [])
+    status = data.get("status")
     if not dates or not status:
-        return jsonify({"error": "Missing dates or status"}), 400
+        return jsonify({"error": "Missing dates or status"}), 200
     availability = room.availability or {}
     for date in dates:
         availability[date] = status
     room.availability = availability
     db.commit()
     return jsonify({"message": "Availability updated"}), 200
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

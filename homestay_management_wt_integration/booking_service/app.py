@@ -47,16 +47,16 @@ def create_booking():
     if response.status_code != 200:
         return jsonify({"error": "Room not found"}), 404
     availability = response.json()
-    for date in dates:
-        if availability.get(date) != "available":
-            return jsonify({"error": f"Date {date} is not available"}), 400
-
+    # for date in dates:
+    #     if availability.get(date) != "available":
+    #         return jsonify({"error": f"Date {date} is not available"}), 400
+    print("here")
     # Book the dates
     book_data = {"dates": dates, "status": "booked"}
     response = requests.post(f"{ROOM_SERVICE_URL}/rooms/{room_id}/set_availability", json=book_data)
     if response.status_code != 200:
         return jsonify({"error": "Failed to book dates"}), 500
-
+    print("herer")
     # Create booking
     booking = BookingModel(**booking_data.dict())
     db.add(booking)
@@ -65,6 +65,7 @@ def create_booking():
     
     # Add loyalty points if booking is confirmed
     if booking.status == "confirmed":
+        print("here")
         # Get room pricing (this part depends on how you store/calculate booking price)
         room_response = requests.get(f"{ROOM_SERVICE_URL}/rooms/{room_id}")
         if room_response.status_code == 200:
@@ -76,7 +77,8 @@ def create_booking():
             # Add points to user's wallet
             try:
                 loyalty_data = {"payment_amount": total_payment}
-                requests.post(f"{LOYALTY_SERVICE_URL}/wallets/{booking.user_id}/add", json=loyalty_data)
+                requests.post(f"{LOYALTY_SERVICE_URL}/{booking.user_id}/add", json=loyalty_data)
+                
             except Exception as e:
                 # Log the error but don't fail the booking
                 print(f"Error adding loyalty points: {str(e)}")
