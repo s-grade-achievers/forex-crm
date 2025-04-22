@@ -48,16 +48,11 @@ def create_booking():
     end_date = booking_data.end_date.strftime("%Y-%m-%d")
     dates = get_dates(start_date, end_date)
     price = booking_data.amount
-    # Check availability
     response = requests.get(f"{ROOM_SERVICE_URL}/rooms/{room_id}/availability")
     if response.status_code != 200:
         return jsonify({"error": "Room not found"}), 404
     availability = response.json()
-    # for date in dates:
-    #     if availability.get(date) != "available":
-    #         return jsonify({"error": f"Date {date} is not available"}), 400
     print("here")
-    # Book the dates
     book_data = {"dates": dates, "status": "booked"}
     response = requests.post(
         f"{ROOM_SERVICE_URL}/rooms/{room_id}/set_availability", json=book_data
@@ -65,28 +60,18 @@ def create_booking():
     if response.status_code != 200:
         return jsonify({"error": "Failed to book dates"}), 500
     print("herer")
-    # # Create booking
-    # booking = BookingModel(**booking_data.dict())
-    # db.add(booking)
-    # db.commit()
-    # db.refresh(booking)
 
-    # Add loyalty points if booking is confirmed
-    # if booking.status == "confirmed":
     print("here")
-    # Get room pricing (this part depends on how you store/calculate booking price)
-
-    # Add points to user's wallet
+  
     try:
         loyalty_data = {"payment_amount": price}
-        response = requests.post(f"{LOYALTY_SERVICE_URL}/{user_id}/add", json=loyalty_data)
-        print(response)
+        response = requests.post(f"{LOYALTY_SERVICE_URL}{user_id}/add", json=loyalty_data)
+        response = requests.get(
+            f"{LOYALTY_SERVICE_URL}{user_id}")
+        return jsonify(response.json()), 201
     except Exception as e:
-        # Log the error but don't fail the booking
         print(f"Error adding loyalty points: {str(e)}")
-
-    return jsonify({"message": "your momma"}), 201
-
+        return jsonify({"error": "Failed to add loyalty points"}), 500
 
 @app.route("/bookings/<int:id>", methods=["GET"])
 def get_booking(id):
@@ -178,7 +163,7 @@ def use_points_for_booking(id):
     try:
         redeem_data = {"points": points_to_use}
         response = requests.post(
-            f"{LOYALTY_SERVICE_URL}/wallets/{booking.user_id}/redeem", json=redeem_data
+            f"{LOYALTY_SERVICE_URL}/wallets/{booking.user_id}/redeem", verify=False, json=redeem_data
         )
 
         if response.status_code != 200:

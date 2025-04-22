@@ -9,3 +9,14 @@ curl -X POST https://localhost:3000/api/buyCurrency \
 -H "Authorization: Bearer <jwt>" \
 --cacert server.cert \
 -d '{"hi":"hello"}'
+
+curl -X POST http://localhost:5003/bookings \
+-H "Content-Type: application/json" \
+-d '{
+  "user_id": 1,
+  "room_id": 101,
+  "start_date": "2025-04-25",
+  "end_date": "2025-04-30",
+  "status": "confirmed",
+  "amount": 500
+}'
