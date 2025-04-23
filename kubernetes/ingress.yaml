@@ -39,6 +39,14 @@ spec:
                             name: booking-service
                             port:
                                 number: 5003
+                
+                  - path: /api/offers
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: web
+                            port:
+                                number: 8000
 
                   - path: /
                     pathType: Prefix

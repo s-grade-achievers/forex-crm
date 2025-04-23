@@ -11,7 +11,7 @@ app = FastAPI(title="Personalized Travel Offer Microservice")
 EMAIL_SERVICE_URL = "http://bore.pub:30001/send-offer-email"
 
 
-@app.get("/offers", response_model=List[Dict[str, Any]])
+@app.get("/api/offers/offer", response_model=List[Dict[str, Any]])
 def get_personalized_offers(
     user_id: int = Query(..., description="The ID of the user to generate offers for"),
     test_email: str = Query(
@@ -24,7 +24,7 @@ def get_personalized_offers(
 
     try:
         # 1. Fetch user activity and override email if testing
-        user_data = user_activity_service.get_user_activity(4)
+        user_data = user_activity_service.get_user_activity(user_id)
         if test_email:
             user_data["email"] = test_email
 
@@ -61,7 +61,7 @@ def get_personalized_offers(
         )
 
 
-@app.get("/")
+@app.get("/api/offers")
 def read_root():
     return {
         "message": "Welcome to the Personalized Travel Offer Microservice! Visit /docs for API documentation."
