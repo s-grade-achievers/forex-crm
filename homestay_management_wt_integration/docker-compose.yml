@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+    room_db:
+        image: postgres:14
+        environment:
+            POSTGRES_USER: room_user
+            POSTGRES_PASSWORD: room_pass
+            POSTGRES_DB: room_db
+        volumes:
+            - room_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U room_user -d room_db"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - homestay-network
+
+    booking_db:
+        image: postgres:14
+        environment:
+            POSTGRES_USER: booking_user
+            POSTGRES_PASSWORD: booking_pass
+            POSTGRES_DB: booking_db
+        volumes:
+            - booking_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U booking_user -d booking_db"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - homestay-network
+
+    room_service:
+        build: ./room_service
+        ports:
+            - "5002:5000"
+        depends_on:
+            room_db:
+                condition: service_healthy
+        environment:
+            DATABASE_URL: postgresql://room_user:room_pass@room_db:5432/room_db
+            FLASK_ENV: development
+        volumes:
+            - ./room_service:/app
+        networks:
+            - homestay-network
+
+    booking_service:
+        build: ./booking_service
+        ports:
+            - "5003:5000"
+        depends_on:
+            booking_db:
+                condition: service_healthy
+            room_service:
+                condition: service_started
+        extra_hosts:
+            - "host.docker.internal:172.17.0.1"
+        environment:
+            DATABASE_URL: postgresql://booking_user:booking_pass@booking_db:5432/booking_db
+            FLASK_ENV: development
+        volumes:
+            - ./booking_service:/app
+        networks:
+            - homestay-network
+
+volumes:
+    room_data:
+    booking_data:
+
+networks:
+    homestay-network:
+        driver: bridge
