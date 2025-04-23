@@ -49,7 +49,7 @@ app.get("/api/backend/getPairs", async (req, res) => {
 		const idSymbolMapTo = {};
 		const idSymbolMapRates = {};
 
-		console.log("Received data from admin service:", data);
+		// console.log("Received data from admin service:", data);
 
 		if (!data || !Array.isArray(data)) {
 			console.error("Invalid data format received:", data);
@@ -164,7 +164,12 @@ app.post("/api/backend/verifyPayment", async (req, res) => {
 		const userId = payload.userID || payload.accountId;
 
 		try {
-			await updatePoints(userId, payload.grandTotal);
+			await updatePoints(
+				userId,
+				payload.amount,
+				payload.fromCurrencyId,
+				payload.toCurrencyId
+			);
 			console.log("Points updated successfully");
 		} catch (pointsError) {
 			console.error("Error updating points:", pointsError);
@@ -328,7 +333,7 @@ async function updateWallet(userId, amount, fromCurrency) {
 app.get("/api/backend/wallet/:userId", async (req, res) => {
 	const userId = req.params.userId;
 	let client;
-	
+
 	try {
 		client = await pool.connect();
 		const result = await client.query(
@@ -351,16 +356,60 @@ app.get("/api/backend/wallet/:userId", async (req, res) => {
 	}
 });
 
-async function updatePoints(userID, amount) {
+async function updatePoints(userId, grandTotal, fromCurrencyId, toCurrencyId) {
 	try {
-		console.log(`Updating points for user ${userID} with amount ${amount}`);
+		const httpsAgent = new https.Agent({
+			rejectUnauthorized: false,
+		});
+		const pairs = await axios.get(`${adminUrl}/api/admin/fetchPairs`, {
+			httpsAgent,
+			timeout: 8000,
+			headers: {
+				Host: "admin",
+			},
+		});
+
+		fromCurrencyId = parseInt(fromCurrencyId);
+		const inrID = 9;
+		let getObj = null;
+		if (fromCurrencyId === inrID) {
+			getObj = 1;
+		} else {
+			for (const pair of pairs.data) {
+				if (
+					pair.fromcurrencyid === fromCurrencyId &&
+					pair.tocurrencyid === inrID
+				) {
+					getObj = pair.exchangerate;
+					break;
+				}
+			}
+		}
+
+		if (!getObj) {
+			throw new Error(
+				`No exchange rate found for fromCurrencyId=${fromCurrencyId} to toCurrencyId=${inrID}`
+			);
+		}
+
+		console.log("getObj:", getObj);
+
+		const rate = parseFloat(getObj);
+		const toBeProcessed = grandTotal * rate;
+
+		console.log(
+			`Updating points for user ${userId} with amount ${toBeProcessed}`
+		);
+
 		const response = await axios.post(
-			`${loyaltyServiceUrl}/api/wallet/${userID}/add?payment_amount=${amount}`,
+			`${loyaltyServiceUrl}/api/wallet/${userId}/add?payment_amount=${toBeProcessed}`,
 			{},
 			{
 				timeout: 5000,
+				httpsAgent,
 			}
 		);
+
 		console.log("Loyalty points updated:", response.data);
 		return response.data;
 	} catch (error) {
