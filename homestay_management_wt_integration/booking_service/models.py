@@ -9,4 +9,4 @@ class BookingModel(Base):
     start_date = Column(Date)
     end_date = Column(Date)
     status = Column(String) 
-    amount = Column(Integer) # e.g., "confirmed", "canceled"
+    amount = Column(Integer)

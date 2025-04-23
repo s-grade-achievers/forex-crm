@@ -11,7 +11,6 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
-# Base.metadata.create_all(bind=engine)
 
 ROOM_SERVICE_URL = "http://room_service:5000"
 LOYALTY_SERVICE_URL = (

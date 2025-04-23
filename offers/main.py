@@ -49,9 +49,7 @@ def get_personalized_offers(
             response.raise_for_status()
         except httpx.HTTPError as e:
             print(f"Failed to send email: {e}")
-            # You can choose to still return offers even if email fails
 
-        # 5. Return the offers
         return offers
 
     except Exception as e:

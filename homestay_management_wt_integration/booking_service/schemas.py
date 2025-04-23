@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date
 
+
 class BookingBase(BaseModel):
     room_id: int
     user_id: int
@@ -9,8 +10,10 @@ class BookingBase(BaseModel):
     status: str
     amount: int
 
+
 class BookingCreate(BookingBase):
     pass
+
 
 class BookingSchema(BookingBase):
     id: int
