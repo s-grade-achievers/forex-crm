@@ -10,7 +10,7 @@ curl -X POST https://localhost:3000/api/buyCurrency \
 --cacert server.cert \
 -d '{"hi":"hello"}'
 
-curl -X POST https://api.forex-crm.local/bookings \
+curl -Xk POST https://api.forex-crm.local/api/bookings \
 -H "Content-Type: application/json" \
 -d '{
   "user_id": 1,

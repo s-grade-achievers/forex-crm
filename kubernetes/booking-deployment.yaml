@@ -2,10 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: booking-service
+    namespace: forex-crm
     labels:
         app: booking-service
 spec:
-    replicas: 2
+    replicas: 1
     selector:
         matchLabels:
             app: booking-service
@@ -16,7 +17,7 @@ spec:
         spec:
             containers:
                 - name: booking-service
-                  image: homestay_management_wt_integration_booking_service:latest
+                  image: forex-crm_booking-service:latest
                   imagePullPolicy: Never
                   ports:
                       - containerPort: 5000
@@ -25,10 +26,3 @@ spec:
                         value: postgresql://booking_user:booking_pass@booking-db:5432/booking_db
                       - name: FLASK_ENV
                         value: development
-                  volumeMounts:
-                      - name: booking-service-volume
-                        mountPath: /app
-            volumes:
-                - name: booking-service-volume
-                  emptyDir: {}
-            restartPolicy: Always

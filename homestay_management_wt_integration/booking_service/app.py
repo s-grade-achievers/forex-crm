@@ -1,7 +1,8 @@
 # --- app.py (updated version for booking_service) ---
 from flask import Flask, request, jsonify
-from database import SessionLocal, engine
-from models import Base, BookingModel
+
+# from database import SessionLocal, engine
+from models import BookingModel
 from schemas import BookingCreate, BookingSchema
 from sqlalchemy.orm import Session
 import requests
@@ -10,7 +11,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 ROOM_SERVICE_URL = "http://room_service:5000"
 LOYALTY_SERVICE_URL = (
@@ -18,12 +19,12 @@ LOYALTY_SERVICE_URL = (
 )
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 
 def get_dates(start_date, end_date):
@@ -37,9 +38,9 @@ def get_dates(start_date, end_date):
     return dates
 
 
-@app.route("/bookings", methods=["POST"])
+@app.route("/api/bookings", methods=["POST"])
 def create_booking():
-    db: Session = next(get_db())
+    # db: Session = next(get_db())
     data = request.get_json()
     booking_data = BookingCreate(**data)
     user_id = booking_data.user_id
@@ -47,20 +48,23 @@ def create_booking():
     start_date = booking_data.start_date.strftime("%Y-%m-%d")
     end_date = booking_data.end_date.strftime("%Y-%m-%d")
     dates = get_dates(start_date, end_date)
-    price = booking_data.amount
+    price = float(booking_data.amount)
     print("herer")
 
     print("here")
-  
+
     try:
         loyalty_data = {"payment_amount": price}
-        response = requests.post(f"{LOYALTY_SERVICE_URL}{user_id}/add", json=loyalty_data)
-        response = requests.get(
-            f"{LOYALTY_SERVICE_URL}{user_id}")
+        print(loyalty_data)
+        response = requests.post(
+            f"{LOYALTY_SERVICE_URL}{user_id}/add", params={"payment_amount": price}
+        )
+        response = requests.get(f"{LOYALTY_SERVICE_URL}{user_id}")
         return jsonify(response.json()), 201
     except Exception as e:
         print(f"Error adding loyalty points: {str(e)}")
         return jsonify({"error": "Failed to add loyalty points"}), 500
+
 
 @app.route("/bookings/<int:id>", methods=["GET"])
 def get_booking(id):
@@ -150,7 +154,9 @@ def use_points_for_booking(id):
     try:
         redeem_data = {"points": points_to_use}
         response = requests.post(
-            f"{LOYALTY_SERVICE_URL}/wallets/{booking.user_id}/redeem", verify=False, json=redeem_data
+            f"{LOYALTY_SERVICE_URL}/wallets/{booking.user_id}/redeem",
+            verify=False,
+            json=redeem_data,
         )
 
         if response.status_code != 200:
