@@ -21,6 +21,7 @@ curl -Xk POST https://api.forex-crm.local/api/bookings \
   "amount": 500
 }'
 
-curl -k -X GET "http://api.forex-crm.local/api/offers/offer?user_id=4" \
--H "Content-Type: application/json"
+curl -k -X GET "https://api.forex-crm.local/api/offers/offer?user_id=1" \
+                                             -H "Content-Type: application/json"
+
 
