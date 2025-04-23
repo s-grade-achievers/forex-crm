@@ -19,14 +19,6 @@ LOYALTY_SERVICE_URL = (
 )
 
 
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
-
 def get_dates(start_date, end_date):
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
@@ -40,7 +32,6 @@ def get_dates(start_date, end_date):
 
 @app.route("/api/bookings", methods=["POST"])
 def create_booking():
-    # db: Session = next(get_db())
     data = request.get_json()
     booking_data = BookingCreate(**data)
     user_id = booking_data.user_id
