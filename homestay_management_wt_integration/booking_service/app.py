@@ -14,7 +14,7 @@ Base.metadata.create_all(bind=engine)
 
 ROOM_SERVICE_URL = "http://room_service:5000"
 LOYALTY_SERVICE_URL = (
-    "https://api.forex-crm.local/api/wallet/"  # Added loyalty service URL
+    "http://loyalty-service:8001/api/wallet/"  # Added loyalty service URL
 )
 
 
@@ -48,17 +48,6 @@ def create_booking():
     end_date = booking_data.end_date.strftime("%Y-%m-%d")
     dates = get_dates(start_date, end_date)
     price = booking_data.amount
-    response = requests.get(f"{ROOM_SERVICE_URL}/rooms/{room_id}/availability")
-    if response.status_code != 200:
-        return jsonify({"error": "Room not found"}), 404
-    availability = response.json()
-    print("here")
-    book_data = {"dates": dates, "status": "booked"}
-    response = requests.post(
-        f"{ROOM_SERVICE_URL}/rooms/{room_id}/set_availability", json=book_data
-    )
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to book dates"}), 500
     print("herer")
 
     print("here")
@@ -95,14 +84,12 @@ def update_booking(id):
     for key, value in data.items():
         setattr(booking, key, value)
 
-    # If status changes to confirmed, add loyalty points
     if old_status != "confirmed" and booking.status == "confirmed":
         room_id = booking.room_id
         start_date = booking.start_date.strftime("%Y-%m-%d")
         end_date = booking.end_date.strftime("%Y-%m-%d")
         dates = get_dates(start_date, end_date)
 
-        # Get room pricing
         room_response = requests.get(f"{ROOM_SERVICE_URL}/rooms/{room_id}")
         if room_response.status_code == 200:
             room_data = room_response.json()

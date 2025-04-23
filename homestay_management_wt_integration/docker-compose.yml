@@ -58,7 +58,7 @@ services:
             room_service:
                 condition: service_started
         extra_hosts:
-            - "api.forex-crm.local:192.168.49.2"
+            - "host.docker.internal:172.17.0.1"
         environment:
             DATABASE_URL: postgresql://booking_user:booking_pass@booking_db:5432/booking_db
             FLASK_ENV: development
