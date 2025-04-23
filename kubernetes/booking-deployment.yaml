@@ -16,7 +16,8 @@ spec:
         spec:
             containers:
                 - name: booking-service
-                  image: booking_service:latest
+                  image: homestay_management_wt_integration_booking_service:latest
+                  imagePullPolicy: Never
                   ports:
                       - containerPort: 5000
                   env:
