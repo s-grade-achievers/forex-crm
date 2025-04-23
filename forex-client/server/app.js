@@ -13,98 +13,105 @@ app.use(cors());
 const JWT_SECRET = process.env.JWT_SECRET_PHRASE;
 
 // Environment variables with fallbacks
-const dummyApiUrl = process.env.DUMMY_API_URL || "https://admin:3000";
-const adminProtocol = process.env.ADMIN_PROTOCOL || 'https';
-const adminHost = process.env.ADMIN_HOST || 'admin';
-const adminPort = process.env.ADMIN_PORT || '3000';
+const adminProtocol = process.env.ADMIN_PROTOCOL;
+const adminHost = process.env.ADMIN_HOST;
+const adminPort = process.env.ADMIN_PORT;
 const adminUrl = `${adminProtocol}://${adminHost}:${adminPort}`;
+console.log(adminHost, adminPort, adminUrl);
 
-const host = process.env.LOYALTY_SERVICE_HOST || 'loyalty-service' ;
-const port = process.env.LOYALTY_SERVICE_PORT || '8001';
+const host = process.env.LOYALTY_SERVICE_HOST;
+const port = process.env.LOYALTY_SERVICE_PORT;
 const loyaltyServiceUrl = `http://${host}:${port}`;
-
+console.log("Loyalty Service URL:", loyaltyServiceUrl);
 const agent = new https.Agent({
-	rejectUnauthorized: false
-  });
+	rejectUnauthorized: false,
+});
 
-
-app.get("/api/getPairs", async (req, res) => {
+app.get("/api/backend/getPairs", async (req, res) => {
 	try {
-	console.log("Attempting to connect to admin service via HTTPS...");
-	const httpsAgent = new https.Agent({
-		rejectUnauthorized: false,  
-		servername: 'admin'         
-	});
-
-	  // Use the Docker service name and proper port
-    const response = await axios.get(`${adminUrl}/api/fetchPairs`, {
-		httpsAgent,
-		timeout: 8000, 
-		headers: {
-		  'Host': 'admin' 
-		}
-	});
-	  
-	const data = response.data;
-	const idSymbolMapFor = {};
-	const idSymbolMapTo = {};
-	const idSymbolMapRates = {};
-	  
-	console.log('Received data from admin service:', data);
-	  
-	if (!data || !Array.isArray(data)) {
-		console.error('Invalid data format received:', data);
-		return res.status(500).json({ error: "Invalid data format received from admin service" });
-	}
-	  
-	data.forEach((pair) => {
-		// Check for property name mismatches - adapt these to match the actual response
-		const fromId = pair.fromcurrencyid || pair.fromCurrencyId;
-		const fromCurr = pair.fromcurrency || pair.fromCurrency;
-		const toId = pair.tocurrencyid || pair.toCurrencyId;
-		const toCurr = pair.tocurrency || pair.toCurrency;
-		const rate = pair.exchangerate;
-		
-		idSymbolMapFor[fromId] = fromCurr;
-		idSymbolMapTo[toId] = toCurr;
-		const key = `${fromId}_${toId}`;
-		idSymbolMapRates[key] = rate;
-	});
-
-	const pairs = {
-		for: idSymbolMapFor,
-		to: idSymbolMapTo,
-		rates: idSymbolMapRates,
-	};
-
-    res.json(pairs);
-	} catch (error) {
-	console.error("Error in HTTPS connection:", {
-		message: error.message,
-		code: error.code,
-		response: error.response?.data,
-		statusCode: error.response?.status,
-		host: error.address || 'unknown host',
-		port: error.port || 'unknown port'
-	});
-
-	  // Provide more specific error message based on the error type
-	if (error.code === 'ECONNREFUSED') {
-		return res.status(503).json({ error: "Admin service is not available" });
-	} else if (error.code === 'ETIMEDOUT') {
-		return res.status(504).json({ error: "Connection to admin service timed out" });
-	} else if (error.response) {
-		return res.status(error.response.status).json({ 
-	error: `Admin service returned error: ${error.response.status}`,
-	details: error.response.data
+		console.log("Attempting to connect to admin service via HTTPS...");
+		const httpsAgent = new https.Agent({
+			rejectUnauthorized: false,
+			servername: "admin",
 		});
-	}
-	
-	res.status(500).json({ error: "Failed to fetch currency pairs from admin service" });
+
+		// Use the Docker service name and proper port
+		const response = await axios.get(`${adminUrl}/api/admin/fetchPairs`, {
+			httpsAgent,
+			timeout: 8000,
+			headers: {
+				Host: "admin",
+			},
+		});
+
+		const data = response.data;
+		const idSymbolMapFor = {};
+		const idSymbolMapTo = {};
+		const idSymbolMapRates = {};
+
+		console.log("Received data from admin service:", data);
+
+		if (!data || !Array.isArray(data)) {
+			console.error("Invalid data format received:", data);
+			return res.status(500).json({
+				error: "Invalid data format received from admin service",
+			});
+		}
+
+		data.forEach((pair) => {
+			// Check for property name mismatches - adapt these to match the actual response
+			const fromId = pair.fromcurrencyid || pair.fromCurrencyId;
+			const fromCurr = pair.fromcurrency || pair.fromCurrency;
+			const toId = pair.tocurrencyid || pair.toCurrencyId;
+			const toCurr = pair.tocurrency || pair.toCurrency;
+			const rate = pair.exchangerate;
+
+			idSymbolMapFor[fromId] = fromCurr;
+			idSymbolMapTo[toId] = toCurr;
+			const key = `${fromId}_${toId}`;
+			idSymbolMapRates[key] = rate;
+		});
+
+		const pairs = {
+			for: idSymbolMapFor,
+			to: idSymbolMapTo,
+			rates: idSymbolMapRates,
+		};
+
+		res.json(pairs);
+	} catch (error) {
+		console.error("Error in HTTPS connection:", {
+			message: error.message,
+			code: error.code,
+			response: error.response?.data,
+			statusCode: error.response?.status,
+			host: error.address || "unknown host",
+			port: error.port || "unknown port",
+		});
+
+		// Provide more specific error message based on the error type
+		if (error.code === "ECONNREFUSED") {
+			return res
+				.status(503)
+				.json({ error: "Admin service is not available" });
+		} else if (error.code === "ETIMEDOUT") {
+			return res
+				.status(504)
+				.json({ error: "Connection to admin service timed out" });
+		} else if (error.response) {
+			return res.status(error.response.status).json({
+				error: `Admin service returned error: ${error.response.status}`,
+				details: error.response.data,
+			});
+		}
+
+		res.status(500).json({
+			error: "Failed to fetch currency pairs from admin service",
+		});
 	}
 });
 
-app.post("/api/forexPayment", (req, res) => {
+app.post("/api/backend/forexPayment", (req, res) => {
 	const { fromCurrencyId, toCurrencyId, amount, rate, accountId, username } =
 		req.body;
 
@@ -119,7 +126,7 @@ app.post("/api/forexPayment", (req, res) => {
 		amount,
 		convertedAmount,
 		time: new Date().toLocaleString(),
-		grandTotal
+		grandTotal,
 	};
 
 	console.log(`Bill generated:`, bill);
@@ -134,105 +141,111 @@ const pool = new Pool({
 	port: process.env.DB_PORT,
 });
 
-app.post("/api/verifyPayment", async (req, res) => {
-    const payload = req.body;
+app.post("/api/backend/verifyPayment", async (req, res) => {
+	const payload = req.body;
 
-    try {
-        if (!payload.userID && !payload.accountId) {
-            return res.status(400).json({ message: "Missing user ID" });
-        }
-        if (!payload.fromCurrency && !payload.fromCurrencyId) {
-            return res.status(400).json({ message: "Missing from currency" });
-        }
-        if (!payload.toCurrency && !payload.toCurrencyId) {
-            return res.status(400).json({ message: "Missing to currency" });
-        }
-        if (!payload.amount) {
-            return res.status(400).json({ message: "Missing amount" });
-        }
-        if (!payload.grandTotal) {
-            return res.status(400).json({ message: "Missing grand total" });
-        }
+	try {
+		if (!payload.userID && !payload.accountId) {
+			return res.status(400).json({ message: "Missing user ID" });
+		}
+		if (!payload.fromCurrency && !payload.fromCurrencyId) {
+			return res.status(400).json({ message: "Missing from currency" });
+		}
+		if (!payload.toCurrency && !payload.toCurrencyId) {
+			return res.status(400).json({ message: "Missing to currency" });
+		}
+		if (!payload.amount) {
+			return res.status(400).json({ message: "Missing amount" });
+		}
+		if (!payload.grandTotal) {
+			return res.status(400).json({ message: "Missing grand total" });
+		}
 
-        const userId = payload.userID || payload.accountId;
-        
-        try {
-            await updatePoints(userId, payload.grandTotal);
-            console.log("Points updated successfully");
-        } catch (pointsError) {
-            console.error("Error updating points:", pointsError);
-        }
+		const userId = payload.userID || payload.accountId;
 
-        const tokenPayload = {
-            userid: userId,
-            fromcurrency: payload.fromCurrency || payload.fromCurrencyId,
-            tocurrency: payload.toCurrency || payload.toCurrencyId,
-            amount: payload.amount,
-        };
+		try {
+			await updatePoints(userId, payload.amount, payload.fromCurrencyId, payload.toCurrencyId);
+			console.log("Points updated successfully");
+		} catch (pointsError) {
+			console.error("Error updating points:", pointsError);
+		}
 
-        console.log("Creating token with payload:", tokenPayload);
+		const tokenPayload = {
+			userid: userId,
+			fromcurrency: payload.fromCurrency || payload.fromCurrencyId,
+			tocurrency: payload.toCurrency || payload.toCurrencyId,
+			amount: payload.amount,
+		};
 
-        const signedToken = jwt.sign(tokenPayload, JWT_SECRET, {
-            expiresIn: "1h",
-        });
+		console.log("Creating token with payload:", tokenPayload);
 
-        console.log("Sending request to master backend with token");
+		const signedToken = jwt.sign(tokenPayload, JWT_SECRET, {
+			expiresIn: "1h",
+		});
 
-        const httpsAgent = new https.Agent({
-            rejectUnauthorized: false,
-            servername: 'admin'
-        });
+		console.log("Sending request to master backend with token");
 
-        const response = await axios.post(
-            `${adminUrl}/api/buyCurrency`,
-            {},  
-            {
-                headers: { 
-                    Authorization: `Bearer ${signedToken}`,
-                    'Host': 'admin'
-                },
-                httpsAgent,
-                timeout: 8000
-            }
-        );
+		const httpsAgent = new https.Agent({
+			rejectUnauthorized: false,
+			servername: "admin",
+		});
 
-        console.log("Response from master backend:", response.data);
+		const response = await axios.post(
+			`${adminUrl}/api/admin/buyCurrency`,
+			{},
+			{
+				headers: {
+					Authorization: `Bearer ${signedToken}`,
+					Host: "admin",
+				},
+				httpsAgent,
+				timeout: 8000,
+			}
+		);
 
-        await updateWallet(
-            tokenPayload.userid,
-            tokenPayload.amount,
-            tokenPayload.fromcurrency
-        );
-        console.log("Wallet updated successfully");
+		console.log("Response from master backend:", response.data);
 
-        res.status(200).json({ 
-            message: "Transaction complete", 
-            newToken: response.data.newToken 
-        });
-    } catch (error) {
-        console.error("Error during transaction:", {
-            message: error.message,
-            code: error.code,
-            response: error.response?.data,
-            statusCode: error.response?.status
-        });
-        
-        if (error.code === 'ECONNREFUSED') {
-            return res.status(503).json({ error: "Admin service is not available" });
-        } else if (error.code === 'ETIMEDOUT') {
-            return res.status(504).json({ error: "Connection to admin service timed out" });
-        } else if (error.response) {
-            return res.status(error.response.status).json({ 
-                error: `Admin service returned error: ${error.response.status}`,
-                details: error.response.data
-            });
-        }
-        
-        res.status(500).json({ error: "Internal server error during transaction" });
-    }
+		await updateWallet(
+			tokenPayload.userid,
+			tokenPayload.amount,
+			tokenPayload.fromcurrency
+		);
+		console.log("Wallet updated successfully");
+
+		res.status(200).json({
+			message: "Transaction complete",
+			newToken: response.data.newToken,
+		});
+	} catch (error) {
+		console.error("Error during transaction:", {
+			message: error.message,
+			code: error.code,
+			response: error.response?.data,
+			statusCode: error.response?.status,
+		});
+
+		if (error.code === "ECONNREFUSED") {
+			return res
+				.status(503)
+				.json({ error: "Admin service is not available" });
+		} else if (error.code === "ETIMEDOUT") {
+			return res
+				.status(504)
+				.json({ error: "Connection to admin service timed out" });
+		} else if (error.response) {
+			return res.status(error.response.status).json({
+				error: `Admin service returned error: ${error.response.status}`,
+				details: error.response.data,
+			});
+		}
+
+		res.status(500).json({
+			error: "Internal server error during transaction",
+		});
+	}
 });
 
-app.post("/api/confirmTransaction", async (req, res) => {
+app.post("/api/backend/confirmTransaction", async (req, res) => {
 	const dataForSQL = req.body;
 	try {
 		console.log("Transaction confirmed:", dataForSQL);
@@ -289,7 +302,7 @@ async function updateWallet(userId, amount, fromCurrency) {
         WHERE user_id = $2 AND currency_id = $3
         RETURNING *
         `;
-		const updateResult = await client.query(updateQuery, [
+			const updateResult = await client.query(updateQuery, [
 				amount,
 				userId,
 				fromCurrency,
@@ -312,9 +325,10 @@ async function updateWallet(userId, amount, fromCurrency) {
 	}
 }
 
-app.get("/api/wallet/:userId", async (req, res) => {
+app.get("/api/backend/wallet/:userId", async (req, res) => {
 	const userId = req.params.userId;
 	let client;
+	
 	try {
 		client = await pool.connect();
 		const result = await client.query(
@@ -337,25 +351,34 @@ app.get("/api/wallet/:userId", async (req, res) => {
 	}
 });
 
+async function updatePoints(userId, grandTotal, fromCurrencyId, toCurrencyId) {
+	try {
+		const pairs = await axios.get(`${adminUrl}/api/admin/fetchPairs`);
+		const inrID = 9;
+		const getObj = pairs.data.exchangerate.find(
+			(pair) => pair.fromcurrencyid === fromCurrencyId && pair.tocurrencyid === inrID
+		);
+		const rate = getObj['exchangerate'];
+		const toBeProcessed = grandTotal * rate;
 
-async function updatePoints(userID, amount) {
-    try {
-        console.log(`Updating points for user ${userID} with amount ${amount}`);
-        const response = await axios.post(
-			`${loyaltyServiceUrl}/wallet/${userID}/add?payment_amount=${amount}`,
-			{}, 
+		console.log(`Updating points for user ${userID} with amount ${toBeProcessed}`);
+		const response = await axios.post(
+			`${loyaltyServiceUrl}/api/wallet/${userID}/add?payment_amount=${toBeProcessed}`,
+			{},
 			{
-				timeout: 5000
+				timeout: 5000,
 			}
 		);
-        console.log("Loyalty points updated:", response.data);
-        return response.data;
-    } catch (error) {
-        console.error("Failed to update loyalty points:", error.response?.data || error.message);
-        throw error;
-    }
+		console.log("Loyalty points updated:", response.data);
+		return response.data;
+	} catch (error) {
+		console.error(
+			"Failed to update loyalty points:",
+			error.response?.data || error.message
+		);
+		throw error;
+	}
 }
-
 
 app.listen(4000, () => {
 	console.log(`Server running on port: 4000`);
