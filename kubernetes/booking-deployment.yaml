@@ -26,3 +26,4 @@ spec:
                         value: postgresql://booking_user:booking_pass@booking-db:5432/booking_db
                       - name: FLASK_ENV
                         value: development
+
