@@ -403,10 +403,13 @@ async function updatePoints(userId, grandTotal, fromCurrencyId, toCurrencyId) {
 
 		const response = await axios.post(
 			`${loyaltyServiceUrl}/api/wallet/${userId}/add?payment_amount=${toBeProcessed}`,
-			{},
+			{}, 
 			{
-				timeout: 5000,
+				headers: {
+					"ngrok-skip-browser-warning": "true",
+				},
 				httpsAgent,
+				timeout: 8000,
 			}
 		);
 

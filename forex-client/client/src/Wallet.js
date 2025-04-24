@@ -18,7 +18,12 @@ export default function PaymentProcessing() {
 				const [walletRes, loyaltyRes] = await Promise.all([
 					axios.get(`${BASE_URL}/wallet/${accountId}`),
 					axios.get(
-						`https://api.forex-crm.local/api/wallet/${accountId}`
+						`https://api.forex-crm.local/api/wallet/${accountId}`,
+						{
+							headers: {
+								"ngrok-skip-browser-warning": "true",
+							},
+						}
 					),
 				]);
 
