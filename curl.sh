@@ -25,3 +25,7 @@ curl -k -X GET "https://api.forex-crm.local/api/offers/offer?user_id=1" \
                                              -H "Content-Type: application/json"
 
 
+curl -k -X POST "https://api.forex-crm.local/api/wallet/1/redeem?points=30"
+
+curl -k -X POST "https://api.forex-crm.local/api/wallet/1/add?payment_amount=-500" \
+                                                -H "Content-Type: application/json" \
