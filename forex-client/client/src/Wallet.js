@@ -18,7 +18,7 @@ export default function PaymentProcessing() {
 				const [walletRes, loyaltyRes] = await Promise.all([
 					axios.get(`${BASE_URL}/wallet/${accountId}`),
 					axios.get(
-						`https://your-ngrok-url.ngrok-free.app/api/wallet/${accountId}`,
+						`https://9ed0-2406-7400-10a-85d5-80bf-6fb2-e3c3-fdf7.ngrok-free.app/api/wallet/${accountId}`,
 						{
 							headers: {
 								"ngrok-skip-browser-warning": "true",

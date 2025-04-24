@@ -16,16 +16,16 @@ echo "docker build"
 sudo docker build -t forex-crm_forex-admin:latest ./forex-admin/
 sudo docker build -t forex-crm_frontend:latest ./forex-client/client
 sudo docker build -t forex-crm_backend:latest ./forex-client/server
-sudo docker build -t forex-crm_loyalty-service:latest ./loyalty
-sudo docker build -t forex-crm_web:latest ./offers
+# sudo docker build -t forex-crm_loyalty-service:latest ./loyalty
+# sudo docker build -t forex-crm_web:latest ./offers
 sudo docker build -t forex-crm_booking-service:latest ./booking-service
 
 echo "Load images to minikube"
 minikube image load forex-crm_forex-admin:latest
 minikube image load forex-crm_frontend:latest
 minikube image load forex-crm_backend:latest
-minikube image load forex-crm_loyalty-service:latest
-minikube image load forex-crm_web:latest
+# minikube image load forex-crm_loyalty-service:latest
+# minikube image load forex-crm_web:latest
 minikube image load postgres:14
 minikube image load forex-crm_booking-service:latest
 minikube addons enable ingress
