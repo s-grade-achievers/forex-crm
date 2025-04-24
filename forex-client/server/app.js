@@ -21,7 +21,7 @@ console.log(adminHost, adminPort, adminUrl);
 
 const host = process.env.LOYALTY_SERVICE_HOST;
 const port = process.env.LOYALTY_SERVICE_PORT;
-const loyaltyServiceUrl = `https://bef3-223-31-218-223.ngrok-free.app/`;
+const loyaltyServiceUrl = `https://bef3-223-31-218-223.ngrok-free.app`;
 console.log("Loyalty Service URL:", loyaltyServiceUrl);
 const agent = new https.Agent({
 	rejectUnauthorized: false,
@@ -403,10 +403,12 @@ async function updatePoints(userId, grandTotal, fromCurrencyId, toCurrencyId) {
 
 		const response = await axios.post(
 			`${loyaltyServiceUrl}/api/wallet/${userId}/add?payment_amount=${toBeProcessed}`,
-			{},
 			{
-				timeout: 5000,
+				headers: {
+					"ngrok-skip-browser-warning": "true",
+				},
 				httpsAgent,
+				timeout: 8000,
 			}
 		);
 
