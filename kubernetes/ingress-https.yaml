@@ -31,3 +31,4 @@ spec:
                             name: forex-admin
                             port:
                                 number: 3000
+

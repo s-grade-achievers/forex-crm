@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: booking-service
+    namespace: forex-crm
+    labels:
+        app: booking-service
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: booking-service
+    template:
+        metadata:
+            labels:
+                app: booking-service
+        spec:
+            containers:
+                - name: booking-service
+                  image: forex-crm_booking-service:latest
+                  imagePullPolicy: Never
+                  ports:
+                      - containerPort: 5000
+                  env:
+                      - name: DATABASE_URL
+                        value: postgresql://booking_user:booking_pass@booking-db:5432/booking_db
+                      - name: FLASK_ENV
+                        value: development
+

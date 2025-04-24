@@ -34,3 +34,4 @@ spec:
                 - name: loyalty-code
                   persistentVolumeClaim:
                       claimName: loyalty-code-pvc
+

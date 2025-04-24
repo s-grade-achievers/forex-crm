@@ -32,3 +32,4 @@ echo "k8s"
 cd ./kubernetes
 sh apply.sh
 kubectl exec -it  $(kubectl get pod -n forex-crm -l app=forex-admin -o jsonpath="{.items[0].metadata.name}") -n forex-crm -- node src/server.js
+

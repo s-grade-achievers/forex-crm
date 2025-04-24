@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from app.database import Base
 
+
 class Wallet(Base):
     __tablename__ = "wallets"
 

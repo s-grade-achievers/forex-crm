@@ -7,7 +7,7 @@ const generateToken = () => {
 	const payload = {
 		userid: 123,
 		fromcurrency: 1,
-        tocurrency: 2,
+		tocurrency: 2,
 		amount: 1000,
 	};
 	const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });

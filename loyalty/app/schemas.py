@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class WalletOut(BaseModel):
     user_id: int
     points: int
@@ -7,10 +8,12 @@ class WalletOut(BaseModel):
     class Config:
         orm_mode = True
 
+
 class RedeemResponse(BaseModel):
     user_id: int
     redeemed: int
     money: float
+
 
 class VoucherResponse(BaseModel):
     user_id: int

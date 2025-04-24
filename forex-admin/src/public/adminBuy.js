@@ -136,8 +136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 				const { newToken } = await buyResponse.json();
 				console.log("Payment successful! New token received.");
 				console.log("New Token:", newToken);
-				if (newToken)
-					window.location.href = `/admin/admin`;
+				if (newToken) window.location.href = `/admin/admin`;
 			} catch (error) {
 				console.log("Error during payment:", error);
 				console.log("Payment failed. Please try again.");

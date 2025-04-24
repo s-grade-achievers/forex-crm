@@ -27,7 +27,6 @@ CREATE TABLE transactionledger (
     FOREIGN KEY (exchangepair) REFERENCES exchangeablepairs(id)
 );
 
--- Insert data into forexreserves
 INSERT INTO forexreserves (id, currency, amount) VALUES
 (1, 'USD', 1000000000.00),
 (2, 'EUR', 900000000.00),
@@ -39,7 +38,6 @@ INSERT INTO forexreserves (id, currency, amount) VALUES
 (8, 'NZD', 550000000.00),
 (9, 'INR', 30000000000.00);
 
--- Insert data into exchangeablepairs
 INSERT INTO exchangeablepairs (id, fromcurrency, tocurrency, exchangeRate) VALUES
 (1, 1, 2, 1.085000),    -- USD/EUR
 (2, 1, 3, 1.265000),    -- USD/GBP
