@@ -8,7 +8,7 @@ from core import rule_engine, offer_generator
 
 app = FastAPI(title="Personalized Travel Offer Microservice")
 
-EMAIL_SERVICE_URL = "http://bore.pub:30001/send-offer-email"
+EMAIL_SERVICE_URL = "http://bore.pub:32292/send-offer-email"
 
 
 @app.get("/api/offers/offer", response_model=List[Dict[str, Any]])
