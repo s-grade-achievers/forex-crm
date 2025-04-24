@@ -18,7 +18,7 @@ export default function PaymentProcessing() {
 				const [walletRes, loyaltyRes] = await Promise.all([
 					axios.get(`${BASE_URL}/wallet/${accountId}`),
 					axios.get(
-						`https://0266-223-31-218-223.ngrok-free.app/api/wallet/${accountId}`
+						`https://bef3-223-31-218-223.ngrok-free.app/api/wallet/${accountId}`
 					),
 				]);
 

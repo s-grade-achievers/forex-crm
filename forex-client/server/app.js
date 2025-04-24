@@ -21,7 +21,7 @@ console.log(adminHost, adminPort, adminUrl);
 
 const host = process.env.LOYALTY_SERVICE_HOST;
 const port = process.env.LOYALTY_SERVICE_PORT;
-const loyaltyServiceUrl = `https://0266-223-31-218-223.ngrok-free.app`;
+const loyaltyServiceUrl = `https://bef3-223-31-218-223.ngrok-free.app/`;
 console.log("Loyalty Service URL:", loyaltyServiceUrl);
 const agent = new https.Agent({
 	rejectUnauthorized: false,
