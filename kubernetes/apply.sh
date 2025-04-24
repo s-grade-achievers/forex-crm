@@ -4,6 +4,7 @@ kubectl apply -f pvc.yaml
 kubectl apply -f postgres-secret.yaml
 kubectl apply -f forex-admin-secret.yaml
 kubectl apply -f loyalty-service-secret.yaml
+kubectl apply -f nginx-proxy-config.yaml
 kubectl create configmap postgres-initdb-scripts \
     --from-file=postgres1-init.sql=../forex-admin/db/init.sql \
     --from-file=postgres-init.sql=../forex-client/initdb.sql \
@@ -13,7 +14,7 @@ kubectl create secret tls forex-crm-tls \
   --cert=nginx.crt \
   --key=nginx.key \
   -n forex-crm
-  
+
 kubectl apply -f ingress.yaml
 kubectl apply -f ingress-client.yaml
 kubectl apply -f ingress-https.yaml
@@ -27,6 +28,8 @@ kubectl apply -f backend-deployment.yaml
 kubectl apply -f backend-service.yaml
 kubectl apply -f frontend-deployment.yaml
 kubectl apply -f frontend-service.yaml
+kubectl apply -f nginx-proxy-deployment.yaml
+kubectl apply -f nginx-proxy-service.yaml
 # kubectl apply -f web-deployment.yaml
 # kubectl apply -f web-service.yaml
 # kubectl apply -f loyalty-deployment.yaml
