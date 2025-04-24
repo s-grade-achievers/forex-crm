@@ -13,15 +13,15 @@ app.use(cors());
 const JWT_SECRET = process.env.JWT_SECRET_PHRASE;
 
 // Environment variables with fallbacks
-// const adminProtocol = process.env.ADMIN_PROTOCOL;
-// const adminHost = process.env.ADMIN_HOST;
-// const adminPort = process.env.ADMIN_PORT;
-const adminUrl = "https://0266-223-31-218-223.ngrok-free.app";
+const adminProtocol = process.env.ADMIN_PROTOCOL;
+const adminHost = process.env.ADMIN_HOST;
+const adminPort = process.env.ADMIN_PORT;
+const adminUrl = `${adminProtocol}://${adminHost}:${adminPort}`;
 console.log(adminHost, adminPort, adminUrl);
 
-// const host = process.env.LOYALTY_SERVICE_HOST;
-// const port = process.env.LOYALTY_SERVICE_PORT;
-const loyaltyServiceUrl = "https://0266-223-31-218-223.ngrok-free.app";
+const host = process.env.LOYALTY_SERVICE_HOST;
+const port = process.env.LOYALTY_SERVICE_PORT;
+const loyaltyServiceUrl = `http://${host}:${port}`;
 console.log("Loyalty Service URL:", loyaltyServiceUrl);
 const agent = new https.Agent({
 	rejectUnauthorized: false,
