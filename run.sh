@@ -34,3 +34,4 @@ echo "k8s"
 cd ./kubernetes
 sh apply.sh
 
+

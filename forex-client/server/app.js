@@ -9,7 +9,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// JWT Secret - must match the one in the master backend
 const JWT_SECRET = process.env.JWT_SECRET_PHRASE;
 
 // Environment variables with fallbacks
